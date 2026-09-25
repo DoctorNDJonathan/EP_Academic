@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Exam Proctor</title>
+<style>
+  :root { --ink:#1f3a5f; --text:#2d3748; --muted:#5a6678; --line:#d5dbe3; --bg:#fbfcfd;
+          --ok:#2f7d4f; --wait:#9a6412; --err:#b83232; }
+  * { box-sizing: border-box; }
+  body { margin:0; width:340px; font:14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         color:var(--text); background:var(--bg); }
+  header { background:var(--ink); color:#fff; padding:14px 16px; }
+  header h1 { margin:0; font-size:15px; font-weight:600; }
+  main { padding:14px 16px 16px; }
+  .notice { font-size:12.5px; color:var(--muted); border-left:3px solid var(--line); padding-left:10px; margin:0 0 14px; }
+  .notice p { margin:0 0 6px; }
+  label { display:block; font-weight:600; font-size:13px; margin:10px 0 4px; }
+  input[type=text] { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font:inherit; }
+  input[type=text]:focus, button:focus-visible, input[type=checkbox]:focus-visible { outline:2px solid var(--ink); outline-offset:1px; }
+  .consent { display:flex; gap:8px; align-items:flex-start; font-weight:400; font-size:13px; margin-top:12px; }
+  .consent input { margin-top:3px; }
+  button { margin-top:14px; width:100%; padding:9px; border:0; border-radius:6px; background:var(--ink);
+           color:#fff; font:inherit; font-weight:600; cursor:pointer; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .error { color:var(--err); font-size:13px; margin-top:10px; min-height:1em; }
+  .status { display:flex; align-items:center; gap:8px; font-weight:600; font-size:15px; margin-bottom:6px; }
+  .dot { width:10px; height:10px; border-radius:50%; background:var(--wait); flex:none; }
+  .running .dot { background:var(--ok); }
+  .finished .dot { background:var(--muted); }
+  .banner { border-radius:6px; padding:8px 10px; font-size:13px; font-weight:600; margin:8px 0 4px; }
+  .banner.ok { background:#e6f4ea; color:var(--ok); }
+  .banner.bad { background:#fdecea; color:var(--err); }
+  dl { margin:10px 0 0; display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:13px; }
+  dt { color:var(--muted); } dd { margin:0; overflow-wrap:anywhere; }
+  h2 { font-size:13px; margin:14px 0 4px; color:var(--muted); font-weight:600; }
+  ul { margin:0; padding-left:18px; font-size:13px; max-height:130px; overflow:auto; }
+  .link { background:none; color:var(--ink); text-decoration:underline; padding:0; width:auto; font-weight:400; font-size:12.5px; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<header><h1>Exam Proctor</h1></header>
+<main>
+  <section id="joinView" hidden>
+    <div class="notice">
+      <p>During the exam's start and end time only, this extension reports the website open in your active tab (address without search terms, and page title), other open tabs that are not allowed, and when you switch to another app or stop using the keyboard and mouse.</p>
+      <p>Your instructor sets which sites are allowed. Visiting any other site, or leaving the browser, is flagged for review. The extension does not record keystrokes, page content, your screen, camera or microphone.</p>
+    </div>
+    <label for="code">Exam code</label>
+    <input id="code" type="text" autocomplete="off" spellcheck="false" placeholder="Given by your instructor">
+    <label for="roll">Roll number</label>
+    <input id="roll" type="text" autocomplete="off" spellcheck="false">
+    <label for="pin">Exam PIN</label>
+    <input id="pin" type="text" autocomplete="off" maxlength="12" placeholder="Announced when the exam starts">
+    <label class="consent"><input id="consent" type="checkbox"> I have read the notice above and agree to this monitoring for this exam.</label>
+    <button id="joinBtn" disabled>Join exam</button>
+    <div class="error" id="err" role="alert"></div>
+  </section>
+
+  <section id="statusView" hidden>
+    <div class="status" id="statusLine"><span class="dot"></span><span id="statusText"></span></div>
+    <div class="banner" id="banner" hidden></div>
+    <dl>
+      <dt>Exam</dt><dd id="examName"></dd>
+      <dt>Student</dt><dd id="student"></dd>
+      <dt>Time</dt><dd id="examTime"></dd>
+      <dt>Connection</dt><dd id="conn"></dd>
+    </dl>
+    <h2>Allowed sites</h2>
+    <ul id="sites"></ul>
+    <button class="link" id="resetBtn" hidden>Join a different exam</button>
+    <div class="error" id="err2" role="alert"></div>
+  </section>
+</main>
+<script type="module" src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exam Proctor</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/app.css">
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+<div id="login" class="login" hidden>
+  <form id="loginForm" class="card login-card">
+    <div class="brand"><span class="logo" aria-hidden="true"></span>Exam Proctor</div>
+    <p class="muted">Invigilator sign-in</p>
+    <label>Username <input name="username" autocomplete="username" required></label>
+    <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+    <button class="btn primary" type="submit">Sign in</button>
+    <p class="error" id="loginErr" role="alert"></p>
+  </form>
+</div>
+
+<div id="shell" hidden>
+  <header class="topbar">
+    <a class="brand" href="#/exams"><span class="logo" aria-hidden="true"></span>Exam Proctor</a>
+    <nav>
+      <a href="#/exams" data-nav="exams">Exams</a>
+      <a href="#/admins" data-nav="admins">Admins</a>
+    </nav>
+    <div class="spacer"></div>
+    <span class="muted" id="whoami"></span>
+    <button class="btn ghost" data-action="logout">Sign out</button>
+  </header>
+  <main id="view"></main>
+</div>
+
+<aside id="drawer" class="drawer" hidden aria-label="Student detail">
+  <div class="drawer-head">
+    <div><h2 id="dTitle"></h2><div class="muted" id="dSub"></div></div>
+    <button class="btn ghost" data-action="close-drawer" aria-label="Close">✕</button>
+  </div>
+  <div id="dBody" class="drawer-body"></div>
+</aside>
+<div id="toast" class="toast" hidden></div>
+</body>
+</html>

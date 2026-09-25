@@ -1,0 +1,21 @@
+# systemd service: keeps the server running and restarts it after crashes or reboots.
+# Install:  sudo cp proctor.service /etc/systemd/system/
+#           sudo systemctl daemon-reload && sudo systemctl enable --now proctor
+[Unit]
+Description=Exam Proctor (API + dashboard)
+After=network.target
+
+[Service]
+User=proctor
+WorkingDirectory=/opt/proctor/server
+EnvironmentFile=/etc/proctor.env
+# One worker: the rate limiter and the offline watcher live in this process.
+# A single worker comfortably handles several hundred concurrent students.
+ExecStart=/opt/proctor/server/.venv/bin/uvicorn app:app --host 127.0.0.1 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips 127.0.0.1
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
