@@ -76,5 +76,5 @@ Upload `dist/exam-proctor-3.0.0.zip` (built with `python3 build_extension.py --s
 
 ## Tips for review
 
-- The reviewer can't join an exam without a code and PIN. If they ask for test access, create an exam `REVIEW1` that runs for a week, and put its code and PIN in the **Test instructions** field (Privacy practices tab, at the bottom).
+- The reviewer can't join an exam without a code and PIN. If they ask for test access, create an exam `REVIEW1` that runs for 14 days (the maximum), with allowed site `wikipedia.org`, and put its code and PIN in the **Test instructions** field (Privacy practices tab, at the bottom).
 - Rejections usually cite a specific policy. Fix that item and resubmit. The most common is a permission justification that doesn't match what the code does, and the ones above do.

@@ -500,8 +500,8 @@ def _validate_exam(body: ExamIn, need_pin: bool):
         raise HTTPException(400, "Exam code: 2-32 letters, digits, _ or -.")
     if body.end_ts <= body.start_ts:
         raise HTTPException(400, "End time must be after start time.")
-    if body.end_ts - body.start_ts > 12 * 3600:
-        raise HTTPException(400, "Exams longer than 12 hours are not supported.")
+    if body.end_ts - body.start_ts > 14 * 86400:
+        raise HTTPException(400, "Exams longer than 14 days are not supported.")
     if (need_pin or body.pin) and not re.match(r"^[A-Za-z0-9]{4,12}$", body.pin):
         raise HTTPException(400, "PIN: 4-12 letters or digits.")
     sites, bad = [], []
