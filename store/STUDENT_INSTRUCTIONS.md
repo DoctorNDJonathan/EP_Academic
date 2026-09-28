@@ -46,7 +46,7 @@ allowed, or outside Chrome. Go back to the exam straight away.
 - **Chrome crashes or closes:** reopen it and join again with the same details.
 - **A site you need is blocked or flagged** (e.g. a login page): tell the
   invigilator at once. They can add it during the exam.
-- **You get an error message:** take a screenshot and contact [CONTACT] straight away.
+- **You get an error message:** take a screenshot and email your instructor, or nikhildj@xime.org, straight away.
 
 Don't remove or disable the extension during an exam. The invigilators are
 notified if you do.
