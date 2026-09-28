@@ -152,7 +152,12 @@ async function viewExamForm(code) {
         <div class="hint">A visit shorter than this is not flagged (covers redirects and accidental clicks).</div></label>
       <label class="full">Allowed sites (one per line)
         <textarea name="sites" rows="7" spellcheck="false" placeholder="exam.university.edu&#10;accounts.google.com&#10;docs.google.com/forms/d/e/1FAIpQLSf…&#10;desmos.com">${esc((ex?.allowed_sites || []).join("\n"))}</textarea>
-        <div class="hint">A domain also allows its subdomains (<span class="mono">university.edu</span> covers <span class="mono">exam.university.edu</span>). Add a path to allow only part of a site (<span class="mono">docs.google.com/forms/d/e/ABC</span>). Include login pages your exam redirects through (e.g. <span class="mono">accounts.google.com</span>, <span class="mono">login.microsoftonline.com</span>). Any site not listed is flagged.</div></label>
+        <div class="hint">Write a <strong>site</strong> to allow every page on it, including its subdomains: <span class="mono">colab.research.google.com</span> allows every Colab notebook. Add a <strong>path</strong> to allow only part of a site: <span class="mono">docs.google.com/forms/d/e/ABC</span> allows that one form, not all of Google Docs. You can paste links straight from the address bar. Any site not listed is flagged.</div></label>
+      <div class="full site-check">
+        <div id="sitePreview" class="site-preview" aria-live="polite"></div>
+        <label class="test-link">Test a link <input id="testUrl" type="url" placeholder="Paste any link to check it, e.g. https://colab.research.google.com/drive/…" autocomplete="off"></label>
+        <div id="testResult" class="test-result" aria-live="polite"></div>
+      </div>
       <label class="check full"><input type="checkbox" name="flag_outside" ${ex?.flag_outside ?? true ? "checked" : ""}>
         <span>Flag when a student leaves Chrome for another app or window (Word, WhatsApp desktop, another browser, etc.), or locks the screen.</span></label>
       <label class="full">Class roster (optional)
@@ -166,6 +171,11 @@ async function viewExamForm(code) {
       </div>
       <p class="error full" id="formErr" role="alert"></p>
     </form>`;
+  const sitesBox = $("#examForm [name=sites]");
+  const refreshSites = debounce(() => previewSites(sitesBox, $("#testUrl").value), 250);
+  sitesBox.addEventListener("input", refreshSites);
+  $("#testUrl").addEventListener("input", refreshSites);
+  previewSites(sitesBox, "");
   $("#examForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = new FormData(e.target);
@@ -186,6 +196,53 @@ async function viewExamForm(code) {
     } catch (err) { $("#formErr").textContent = err.message; }
   });
 }
+
+function debounce(fn, ms) {
+  let t;
+  return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+}
+
+// Explains, as you type, how each allowed-site line will be applied (rules live on the server).
+async function previewSites(box, testUrl) {
+  const lines = box.value.split(/\r?\n/);
+  let d;
+  try { d = await api("POST", "/api/admin/sites/check", { lines, test_url: testUrl || "" }); } catch { return; }
+  const out = $("#sitePreview");
+  if (!out) return;
+  const rows = d.rows.map((r, i) => {
+    if (!r.valid) return `<li class="bad">✗ <span class="mono">${esc(r.input)}</span>: not a valid site address</li>`;
+    const where = r.scope === "site"
+      ? `<strong>${esc(r.host)}</strong>: whole site, every page, including subdomains`
+      : `<strong>${esc(r.host)}</strong>: only pages under <span class="mono">/${esc(r.path)}</span>
+         <button type="button" class="btn sm" data-action="widen-site" data-index="${i}" data-host="${esc(r.host)}">Allow whole site instead</button>`;
+    return `<li class="${r.warning ? "warn" : "ok"}">${r.scope === "site" ? "✓" : "◐"} ${where}${r.warning ? `<div class="why">⚠ ${esc(r.warning)} Consider a narrower entry.</div>` : ""}</li>`;
+  });
+  const tips = d.tips.map((t) => `<li class="tip">Tip: ${esc(t.why)}
+      ${t.offer ? `<button type="button" class="btn sm" data-action="add-site" data-site="${esc(t.add)}">Add ${esc(t.add)}</button>` : ""}</li>`);
+  out.innerHTML = rows.length || tips.length ? `<ul>${rows.join("")}${tips.join("")}</ul>` : `<p class="muted">No allowed sites yet: every website will be flagged.</p>`;
+  const tr = $("#testResult");
+  if (!d.test) { tr.innerHTML = ""; return; }
+  tr.innerHTML = d.test.allowed
+    ? `<span class="ok">✓ Allowed</span>: matches <span class="mono">${esc(d.test.by)}</span>`
+    : `<span class="bad">✗ Would be flagged</span>: <span class="mono">${esc(d.test.host + d.test.path)}</span> is not covered by any line above.
+       ${d.test.host ? `<button type="button" class="btn sm" data-action="add-site" data-site="${esc(d.test.host)}">Allow ${esc(d.test.host)}</button>` : ""}`;
+}
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-action=widen-site],[data-action=add-site]");
+  if (!b) return;
+  const box = $("#examForm [name=sites]");
+  if (!box) return;
+  const lines = box.value.split(/\r?\n/).filter((l) => l.trim());
+  if (b.dataset.action === "widen-site") {
+    // Preview rows are in the same order as the non-empty lines.
+    lines[Number(b.dataset.index)] = b.dataset.host;
+    box.value = lines.filter((l, i, arr) => arr.indexOf(l) === i).join("\n");
+  } else {
+    box.value = [...lines, b.dataset.site].join("\n");
+  }
+  previewSites(box, $("#testUrl").value);
+});
 
 // ---------------------------------------------------------------- live monitor
 const STATUS_LABEL = { ok: "On allowed site", idle: "Idle", violation: "Not allowed", offline: "Offline",
@@ -383,6 +440,8 @@ async function loadDrawer(roll, first) {
             ${f.status !== "confirmed" ? `<button class="btn sm danger" data-review="confirmed" data-id="${f.id}">Confirm</button>` : ""}
             ${f.status !== "dismissed" ? `<button class="btn sm" data-review="dismissed" data-id="${f.id}">Dismiss</button>` : ""}
             ${f.status !== "open" ? `<button class="btn sm ghost" data-review="open" data-id="${f.id}">Reopen</button>` : ""}
+            ${["disallowed_site", "tab_open"].includes(f.rule) && f.status === "open" && f.domain
+              ? `<button class="btn sm" data-allow-site="${esc(f.domain)}" title="Add this site to the exam's allowed list">Allow ${esc(f.domain)}</button>` : ""}
           </div>
         </div>`).join("") : `<div class="muted">No flags.</div>`}
     </section>
@@ -418,6 +477,18 @@ document.addEventListener("click", async (e) => {
   }
   try {
     await api("POST", `/api/admin/flags/${b.dataset.id}`, { status, note });
+    await loadLive(false);
+  } catch (err) { toast(err.message); }
+});
+
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-allow-site]");
+  if (!b || !ui.code) return;
+  const site = b.dataset.allowSite;
+  if (!confirm(`Allow ${site} for the rest of this exam?\n\nEvery page on ${site} and its subdomains becomes allowed for all students, and open flags for it are dismissed. Students' extensions update within 30 seconds.`)) return;
+  try {
+    const r = await api("POST", `/api/admin/exams/${encodeURIComponent(ui.code)}/allow`, { site, dismiss: true });
+    toast(`${r.added} is now allowed. ${r.dismissed} flag(s) dismissed.`, 5000);
     await loadLive(false);
   } catch (err) { toast(err.message); }
 });

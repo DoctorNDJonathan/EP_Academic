@@ -46,12 +46,12 @@ function parseUrl(url) {
 // Mirror of server/rules.py (the server stays the authority).
 function isAllowed(domain, path, entries) {
   if (domain === NEW_TAB) return true;
-  const p = (path || "").replace(/^\/+/, "");
+  const p = (path || "").replace(/^\/+|\/+$/g, "");
   return (entries || []).some((e) => {
     const i = e.indexOf("/");
     const host = i < 0 ? e : e.slice(0, i);
     const prefix = i < 0 ? "" : e.slice(i + 1);
-    return (domain === host || domain.endsWith("." + host)) && (!prefix || p.startsWith(prefix));
+    return (domain === host || domain.endsWith("." + host)) && (!prefix || p === prefix || p.startsWith(prefix + "/"));
   });
 }
 

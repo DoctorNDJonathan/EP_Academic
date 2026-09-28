@@ -570,6 +570,53 @@ def update_exam(code: str, body: ExamIn, user: str = Depends(admin)):
     return {"code": e["code"]}
 
 
+class SitesCheckIn(BaseModel):
+    lines: list[str] = Field(default=[], max_length=200)
+    test_url: str = Field(default="", max_length=2000)
+
+
+@app.post("/api/admin/sites/check")
+def check_sites(body: SitesCheckIn, user: str = Depends(admin)):
+    """Live preview for the exam editor: how each allowed-site line will be applied."""
+    return rules.describe([x[:500] for x in body.lines], body.test_url)
+
+
+class AllowIn(BaseModel):
+    site: str = Field(max_length=500)
+    dismiss: bool = True
+
+
+@app.post("/api/admin/exams/{code}/allow")
+def allow_site(code: str, body: AllowIn, user: str = Depends(admin)):
+    """Add a site to a (running) exam's allowlist, e.g. straight from a flag, and dismiss its flags."""
+    entry = rules.normalise_entry(body.site)
+    if not entry:
+        raise HTTPException(400, "That is not a valid site.")
+    host = entry.partition("/")[0]
+    with db.conn() as c:
+        e = _exam(c, code)
+        sites = _sites(e)
+        if not rules.is_allowed(host, entry.partition("/")[2], sites):
+            sites = sorted(set(sites) | {entry})
+            c.execute("UPDATE exams SET allowed_sites=? WHERE code=?", (json.dumps(sites), e["code"]))
+        dismissed = 0
+        if body.dismiss:
+            for f in c.execute("SELECT id, domain, path FROM flags WHERE exam_code=? AND status='open' "
+                               "AND rule IN ('disallowed_site','tab_open')", (e["code"],)).fetchall():
+                if rules.is_allowed(f["domain"], f["path"], sites):
+                    c.execute("UPDATE flags SET status='dismissed', note=?, reviewer=? WHERE id=?",
+                              (f"Site added to the allowed list ({entry})", user, f["id"]))
+                    dismissed += 1
+        # Update live tiles now; students' extensions pick up the new list on their next report (<= 30 s).
+        for p in c.execute("SELECT roll_no, kind, domain, path, allowed, bad_tabs FROM presence WHERE exam_code=?",
+                           (e["code"],)).fetchall():
+            ok_now = p["allowed"] or not rules.classify(p["kind"], p["domain"], p["path"], sites, bool(e["flag_outside"]))
+            bad = [d for d in json.loads(p["bad_tabs"]) if not rules.is_allowed(d, "", sites)]
+            c.execute("UPDATE presence SET allowed=?, bad_tabs=? WHERE exam_code=? AND roll_no=?",
+                      (int(bool(ok_now)), json.dumps(bad), e["code"], p["roll_no"]))
+    return {"allowed_sites": sites, "added": entry, "dismissed": dismissed}
+
+
 @app.delete("/api/admin/exams/{code}")
 def delete_exam(code: str, user: str = Depends(admin)):
     with db.conn() as c:
