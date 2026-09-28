@@ -62,7 +62,11 @@ by `.gitignore`.
 2. Go to **New → Blueprint**, pick the repo, and Render reads `render.yaml`.
 3. When it asks for **DATABASE_URL**, paste the Supabase string from Part 1. `PROCTOR_SECRET` is generated automatically.
 4. Click **Apply**. The first build takes 2–4 minutes.
-5. Open `https://exam-proctor.onrender.com/api/health` (use your service's actual name). You should see `{"ok":true,...}`.
+5. Open `https://exam-proctor.onrender.com/api/health` (use your service's actual name). You should see
+   `{"ok":true,...,"database":"postgres"}`.
+   **If it says `"sqlite"`, DATABASE_URL was not saved.** The app is then using a throwaway
+   database, and no admin login will work. In the service's **Environment** tab, add
+   `DATABASE_URL`, then **Save, rebuild, and deploy**.
 
 ### 2c. Create your admin login
 
