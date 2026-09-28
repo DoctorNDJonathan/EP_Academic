@@ -97,6 +97,9 @@ def _exam_start(c, code):
 
 @asynccontextmanager
 async def lifespan(_app):
+    print(f"Database: {'Postgres (DATABASE_URL)' if db.PG else f'SQLite file {db.SQLITE_PATH}'}", flush=True)
+    if PRODUCTION and not db.PG and not os.environ.get("PROCTOR_DB"):
+        print("WARNING: production without DATABASE_URL or PROCTOR_DB: data is not persistent!", flush=True)
     db.init()
     task = asyncio.create_task(_gap_watcher())
     yield
@@ -194,7 +197,7 @@ def _exam_public(e, t):
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "server_time": db.now()}
+    return {"ok": True, "server_time": db.now(), "database": "postgres" if db.PG else "sqlite"}
 
 
 @app.get("/api/exams/{code}")
