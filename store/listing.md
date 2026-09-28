@@ -32,7 +32,9 @@ Upload `dist/exam-proctor-3.0.0.zip` (built with `python3 build_extension.py --s
 **Category:** Education
 **Language:** English
 **Store icon:** `store/store-icon-128.png` (128×128, artwork in the central 96×96 with transparent padding, as the store recommends)
-**Screenshots (1280×800):** `store/screenshot-1-join.png`, `store/screenshot-2-monitoring.png`, `store/screenshot-3-warning.png`
+**Small promo tile (440×280, required):** `store/promo-small-440x280.png`
+**Marquee (1400×560):** optional, skip
+**Screenshots (1280×800, full bleed):** `store/screenshot-1-join.png`, `store/screenshot-2-monitoring.png`, `store/screenshot-3-warning.png`
 **Official URL / Homepage URL:** `https://exam-proctor-rhbo.onrender.com/privacy` (or leave blank)
 **Support URL:** optional (an email link or your homepage)
 
