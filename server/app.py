@@ -689,6 +689,11 @@ def root():
     return RedirectResponse("/dashboard")
 
 
+@app.get("/privacy", include_in_schema=False)
+def privacy():
+    return FileResponse(STATIC / "privacy.html")
+
+
 @app.get("/dashboard", include_in_schema=False)
 def dashboard():
     return FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-store"})

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exam Proctor: Privacy Policy</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/privacy.css">
+</head>
+<body>
+<main>
+<h1>Exam Proctor: Privacy Policy</h1>
+<p class="muted">Last updated: [DATE]</p>
+
+<p>This policy explains what the <strong>Exam Proctor</strong> Chrome extension and its exam server collect, why, and what rights you have. The service is operated by <strong>[OPERATOR NAME]</strong> ("we"). Each institution or instructor that runs an exam with Exam Proctor decides who reviews that exam's records.</p>
+
+<h2>Purpose</h2>
+<p>The extension has one purpose: during an online exam you have chosen to join, to check that you stay on the websites your instructor has allowed, and to report anything else to the exam's invigilators. It is used for nothing else.</p>
+
+<h2>When data is collected</h2>
+<p>Only when <strong>all three</strong> are true:</p>
+<ol>
+  <li>You have joined a specific exam by entering its code, your roll number and the exam PIN.</li>
+  <li>You have ticked the consent box after reading the on-screen notice.</li>
+  <li>The current time is between that exam's scheduled start and end time.</li>
+</ol>
+<p>Nothing is collected before you join, before the exam starts, or after it ends.</p>
+
+<h2>What is collected</h2>
+<ul>
+  <li><strong>Active tab:</strong> the website address of your active tab, as host and path only (for example <code>en.wikipedia.org/wiki/Regression</code>). The part after "?" is <strong>never</strong> sent, so search terms and form values stay private. We also collect the tab's page title.</li>
+  <li><strong>Other open tabs:</strong> the host and path of other open tabs, used only to note tabs on sites the exam does not allow.</li>
+  <li><strong>Focus and inactivity:</strong> the times when Chrome is not the active window (you are using another app), when the screen is locked, or when there is no keyboard or mouse input. Only the fact and the time are recorded, never what was typed or clicked.</li>
+  <li><strong>Status signals:</strong> regular "still running" signals from the extension.</li>
+  <li><strong>Identity:</strong> your roll number, and your name if your instructor uploaded a class list.</li>
+  <li><strong>Browser identifier:</strong> a random identifier created when the extension is installed, used to detect one browser being used for several roll numbers.</li>
+  <li><strong>Removal:</strong> if you uninstall the extension during an exam, Chrome opens a page on the exam server, and that event is recorded.</li>
+</ul>
+
+<h2>What is never collected</h2>
+<p>Keystrokes, the content of web pages, form entries, search terms, passwords, screenshots, screen recordings, camera, microphone, location, files on your computer, or any browsing outside the exam window.</p>
+
+<h2>How the data is used</h2>
+<ol>
+  <li>The server compares each website with the exam's list of allowed sites. Activity outside that list, time spent in other apps, and gaps in monitoring are <strong>flagged</strong> for the invigilators, who can see them live.</li>
+  <li>When you open a site that is not allowed, the extension also warns you with a notification, so you can go back straight away.</li>
+  <li><strong>A person reviews every flag.</strong> A flag is a prompt for review, not a finding of misconduct. No decision is made automatically. Any misconduct case follows your institution's academic integrity process, where you can respond.</li>
+</ol>
+<p>Only signed-in invigilators and administrators can see the records. We do not sell, rent or share the data with advertisers or any third party. It is never used for advertising, credit decisions, or anything unrelated to exam integrity.</p>
+
+<h2>Where the data is stored</h2>
+<p>The exam server runs on Render (render.com). The data is stored in a Postgres database hosted by Supabase (supabase.com) in Singapore. All connections are encrypted (HTTPS/TLS). Exam PINs and session tokens are stored only as secure hashes. These providers host the data on our behalf and do not use it for their own purposes.</p>
+
+<h2>How long it is kept</h2>
+<p>Records are deleted <strong>90 days</strong> after each exam, unless a case is under an active academic integrity review. In that case, the relevant records are kept until the review and any appeal are complete.</p>
+
+<h2>Your rights</h2>
+<p>Depending on where you live, including under India's Digital Personal Data Protection Act, 2023, you may:</p>
+<ul>
+  <li>ask what data about you was collected for an exam</li>
+  <li>ask for inaccurate data to be corrected</li>
+  <li>ask for your data to be erased, subject to any ongoing academic integrity review</li>
+  <li>withdraw consent for future exams (you then cannot join a monitored exam; ask your instructor about alternative arrangements)</li>
+  <li>raise a grievance</li>
+</ul>
+<p>To do any of these, contact your instructor, or us at <strong>[CONTACT EMAIL]</strong>. We will respond within 30 days.</p>
+
+<h2>Changes</h2>
+<p>If this policy changes, we will update the date above before the next monitored exam.</p>
+</main>
+</body>
+</html>

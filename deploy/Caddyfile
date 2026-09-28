@@ -15,7 +15,7 @@ proctor.example.edu {
 	# }
 	# respond @adminOutside "Not found" 404
 
-	@app path /api/* /dashboard /static/* /bye /
+	@app path /api/* /dashboard /privacy /static/* /bye /
 	handle @app {
 		reverse_proxy 127.0.0.1:8000
 	}
