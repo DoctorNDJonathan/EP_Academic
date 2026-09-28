@@ -15,12 +15,22 @@ import sys
 import db
 
 
+def _prompt(text: str) -> str:
+    try:
+        return getpass.getpass(text, echo_char="*")   # Python 3.14+: show one * per character typed
+    except TypeError:
+        return getpass.getpass(text)
+
+
 def _ask_password() -> str:
-    pw = getpass.getpass("Password (10+ characters): ")
+    pw = _prompt("Password (10+ characters): ")
     if len(pw) < 10:
         sys.exit("Password too short.")
-    if pw != getpass.getpass("Repeat password: "):
+    if pw != pw.strip():
+        sys.exit("Password starts or ends with a space. Type it again without the space.")
+    if pw != _prompt("Repeat password: "):
         sys.exit("Passwords do not match.")
+    print(f"Password accepted ({len(pw)} characters).")
     return pw
 
 
