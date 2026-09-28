@@ -219,6 +219,8 @@ async function deviceId() {
 }
 
 async function join(examCode, rollNo, pin) {
+  if (SERVER.includes("PLACEHOLDER"))
+    throw new Error("This copy of the extension has no server address. Load the dist/extension folder made by build_extension.py instead.");
   const existing = await getState();
   if (existing && !existing.finished && existing.exam_code !== examCode.trim().toUpperCase())
     throw new Error("You have already joined another exam. It must finish first.");
@@ -266,7 +268,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
     chain = run.catch(() => {});
     run.then(
       async () => reply({ ok: true, state: await getState() }),
-      (e) => reply({ ok: false, error: e instanceof TypeError ? "Cannot reach the exam server. Check your network." : e.message })
+      (e) => reply({ ok: false, error: e instanceof TypeError ? `Cannot reach the exam server (${new URL(SERVER).host}). Check your network.` : e.message })
     );
     return true;
   }
