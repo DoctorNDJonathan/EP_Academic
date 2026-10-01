@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Exam Proctor: Invigilator Guide</title>
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+
+<div class="cover">
+  <img src="img/icon.png" alt="">
+  <div>
+    <h1>Exam Proctor: Invigilator Guide</h1>
+    <div class="sub">Faculty pilot · Monday 5 October 2026 · 11:30 to 12:30 · Old IQAC</div>
+  </div>
+</div>
+
+<p class="lead">As an invigilator you watch every participant on one live screen, see within seconds who has left the allowed sites, and review each flag afterwards. No technical knowledge is needed: this guide covers everything in about 10 minutes of reading.</p>
+
+<table class="facts">
+  <tr><td>Dashboard</td><td><code>https://exam-proctor-rhbo.onrender.com/dashboard</code>, in any browser, on a laptop, tablet or phone</td></tr>
+  <tr><td>Your login</td><td>Created for you by the organiser (Nikhil D Jonathan). Change the password after your first sign-in: <b>Admins → Change my password</b></td></tr>
+  <tr><td>Pilot exam</td><td><b>Faculty pilot: EDA on diamonds</b>, code <code>FACPILOT1</code>, monitored 11:30 to 12:20</td></tr>
+  <tr><td>Participants</td><td>Up to 40 faculty, each using their XIME email name as roll number</td></tr>
+  <tr><td>Arrive</td><td>11:00, to set up and help participants join</td></tr>
+</table>
+
+<h2>1. How it works in one minute</h2>
+<ul>
+  <li>Each exam has its own list of <b>allowed sites</b>. For this pilot: Google Colab, Google sign-in, and the pandas, seaborn and matplotlib documentation.</li>
+  <li>Participants join from the Chrome extension with the <b>exam code</b>, their roll number and a <b>PIN</b> that you show at 11:20.</li>
+  <li>From 11:30 the extension reports the page each participant is on. Anything not on the list, or switching to another app, turns their <b>tile red</b> and raises a <b>flag</b> within seconds. The participant is warned on their own screen at the same moment.</li>
+  <li>A flag is a <b>prompt to look</b>, never a verdict. You confirm or dismiss each one, with a note.</li>
+</ul>
+<table class="grid">
+  <thead><tr><th style="width:15%">Level</th><th>Raised when</th></tr></thead>
+  <tr><td><span class="pill high">high</span></td><td>A site that is not allowed for more than 3 seconds; another app in front; the extension removed during the exam</td></tr>
+  <tr><td><span class="pill med">medium</span></td><td>No contact from the extension for 90 seconds (browser closed, extension switched off, or Wi-Fi lost); a Chrome settings page; screen locked; rejoining from another browser</td></tr>
+  <tr><td><span class="pill low">low</span></td><td>A background tab open on a site that is not allowed; a gap that was only a network drop</td></tr>
+</table>
+
+<h2>2. Signing in</h2>
+<div class="side">
+  <figure><img src="img/dash-login.png" alt="Sign-in page"><figcaption>The sign-in page</figcaption></figure>
+  <div>
+    <ol class="steps">
+      <li>Open <code>exam-proctor-rhbo.onrender.com/dashboard</code>.</li>
+      <li>Enter the username and password you were given, then click <b>Sign in</b>.</li>
+      <li>The first visit of the day can take up to a minute while the server wakes. This is normal on the free plan.</li>
+    </ol>
+    <div class="box warn"><h4>After 8 wrong passwords</h4>Sign-in is locked for 10 minutes from that network. Ask the organiser to reset your password rather than guessing.</div>
+  </div>
+</div>
+
+<h2>3. The pilot exam settings (organiser)</h2>
+<p>The organiser creates the exam before Monday with <b>+ New exam</b>. Other invigilators can check the settings with <b>Edit exam &amp; allowed sites</b>, but should not change them.</p>
+<table class="grid">
+  <thead><tr><th style="width:30%">Field</th><th>Value</th></tr></thead>
+  <tr><td>Exam name</td><td>Faculty pilot: EDA on diamonds</td></tr>
+  <tr><td>Exam code</td><td><code>FACPILOT1</code></td></tr>
+  <tr><td>Starts / Ends</td><td>5 Oct 2026, 11:30 / 5 Oct 2026, 12:20</td></tr>
+  <tr><td>Exam PIN</td><td>A new 6-digit number, shown only at 11:20</td></tr>
+  <tr><td>Grace period</td><td>3 seconds</td></tr>
+  <tr><td>Flag leaving Chrome</td><td>On</td></tr>
+  <tr><td>Allowed sites</td><td><code>colab.research.google.com</code>, <code>accounts.google.com</code>, <code>pandas.pydata.org</code>, <code>seaborn.pydata.org</code>, <code>matplotlib.org</code> (one per line)</td></tr>
+  <tr><td>Class roster</td><td>Optional: one line per confirmed participant, <code>emailname,Full Name</code></td></tr>
+</table>
+<figure><img src="img/dash-allowed-sites.png" alt="Allowed sites and preview"><figcaption>Allowed sites: the preview under the box explains how each line is applied</figcaption></figure>
+<p>Before the exam, paste a few links into <b>Test a link</b>, such as a Colab notebook, a pandas documentation page and <code>bbc.com/news</code>, and check each result. A link that would be flagged has an <b>Allow</b> button next to it:</p>
+<figure><img src="img/dash-test-link.png" alt="Test a link" style="width:120mm"><figcaption>Test a link: paste any address to see whether it is allowed</figcaption></figure>
+
+<h2>4. Exam-day timeline for invigilators</h2>
+<table class="grid">
+  <thead><tr><th style="width:16%">Time</th><th>What to do</th></tr></thead>
+  <tr><td>11:00</td><td>Sign in to the dashboard on the room's laptop and projector, and on your own device. Open the exam's live view (click the exam in the list).</td></tr>
+  <tr><td>11:15</td><td>Welcome participants. Check each has Chrome and the stopwatch icon pinned. Hand out the printed question papers face down.</td></tr>
+  <tr><td>11:20</td><td>Show the PIN on the projector. Watch <b>Joined X / Y</b> rise; use the <b>Not joined</b> filter to find anyone who needs help.</td></tr>
+  <tr><td>11:30 to 11:37</td><td>Part A, system check: announce each step at its time (Appendix). Expect red tiles: they are deliberate.</td></tr>
+  <tr><td>11:38</td><td>Part B: "Turn over your question papers. Open colab.research.google.com and begin."</td></tr>
+  <tr><td>11:38 to 12:15</td><td>Watch for red tiles. If many participants are flagged on the same site, it may be a site the exam needs (section 7).</td></tr>
+  <tr><td>12:15</td><td>"Please stop working." Keep the live view open until 12:20.</td></tr>
+  <tr><td>12:20</td><td>Show the feedback form link. Lead a 10-minute discussion.</td></tr>
+  <tr><td>12:35</td><td>After the 15-minute upload buffer: review flags and export the CSV (section 8).</td></tr>
+</table>
+
+<h2>5. Reading the live view</h2>
+<figure><img src="img/dash-live.png" alt="Live view"><figcaption>The live view during a rehearsal: 12 of 14 joined, 2 violating now, 1 offline</figcaption></figure>
+<table class="grid">
+  <thead><tr><th style="width:26%">Part of the screen</th><th>What it tells you</th></tr></thead>
+  <tr><td>Header</td><td>Exam name, status (scheduled, running or finished) and the time left</td></tr>
+  <tr><td>Five numbers</td><td>Joined out of the roster; online now; on a site that is not allowed <b>right now</b>; offline for 90 seconds or more; open high flags</td></tr>
+  <tr><td>Filter buttons and search</td><td>Show only those violating now, offline, with high flags, or not yet joined; search by roll number or name</td></tr>
+  <tr><td>Tiles</td><td>One per participant, sorted with problems first. <b>Green</b>: on an allowed site. <b>Red</b>: on a site that is not allowed, or in another app, with how long. <b>Amber</b>: offline. <b>Grey</b>: not joined. The red and amber numbers are the participant's high and medium flags</td></tr>
+  <tr><td>Flags panel (right)</td><td>Every new flag as it happens, newest first. A pop-up message also appears for each new high flag</td></tr>
+</table>
+<p>The screen refreshes itself every 3 seconds; there is no need to reload the page.</p>
+
+<h2>6. Looking into one participant</h2>
+<figure><img src="img/dash-drawer.png" alt="Participant panel"><figcaption>Click any tile (or any flag) to open the participant's panel</figcaption></figure>
+<ul>
+  <li><b>Timeline:</b> green is time on allowed sites and red is time elsewhere, from start to end.</li>
+  <li><b>Flags:</b> each one with the site, the page title, how long and when. Use the buttons:
+    <ul>
+      <li><b>Confirm:</b> you agree it needs follow-up. Add a short note.</li>
+      <li><b>Dismiss:</b> it has an innocent explanation, such as a deliberate system-check step. Add a note.</li>
+      <li><b>Allow &lt;site&gt;:</b> the exam really needs this site. It is added for <b>everyone</b>, their tiles turn green, and its open flags are dismissed. Use it only when you are sure.</li>
+    </ul>
+  </li>
+  <li><b>Activity log:</b> every page visited during the exam, with times. Search terms are never recorded.</li>
+</ul>
+
+<h2>7. Situations and what to do</h2>
+<table class="grid">
+  <thead><tr><th style="width:36%">You see</th><th>What to do</th></tr></thead>
+  <tr><td>One red tile, an unfamiliar site</td><td>Note it. Review it after the exam; don't interrupt the participant during the pilot.</td></tr>
+  <tr><td>Many red tiles on the same site at once</td><td>The exam probably needs that site (for example a sign-in page). Check the address, then use <b>Allow &lt;site&gt;</b> on one flag.</td></tr>
+  <tr><td>An amber (offline) tile</td><td>Their Wi-Fi dropped or Chrome closed. Check on them quietly. If it was only Wi-Fi, the flag drops to low on its own when they reconnect.</td></tr>
+  <tr><td>Grey (not joined) after 11:30</td><td>Help them join: code <code>FACPILOT1</code>, email name, PIN. They can join at any time before 12:20.</td></tr>
+  <tr><td>"Cannot reach the exam server" for many people</td><td>Check the room's Wi-Fi, then open the dashboard. If the dashboard also fails, note the time; the extensions keep recording and send everything when the server returns.</td></tr>
+  <tr><td>"Extension removed" flag</td><td>Ask the participant to reinstall it from the store and rejoin with the same details. Rejoining after a reinstall also adds a <span class="pill med">medium</span> "rejoined from a different browser" flag; that is expected.</td></tr>
+</table>
+
+<h2>8. After the exam</h2>
+<ol class="steps">
+  <li>Wait until about 12:35 so delayed uploads arrive.</li>
+  <li>Review the flags. In the pilot, the Part A flags in the Appendix are expected: <b>Dismiss</b> them with the note "system check". Anything else is a finding: <b>Confirm</b> it and describe it in the note.</li>
+  <li>Click <b>Export flags (CSV)</b> and save the file with the date.</li>
+  <li>Screenshot the live view, then send the CSV and your notes to the organiser.</li>
+</ol>
+<p class="small">The organiser deletes the pilot exam, and with it all pilot records, within 30 days.</p>
+
+<h2 class="break">Appendix: the Part A system check, and the flags it should produce</h2>
+<p>Announce each step at its time. For each participant you should see exactly these flags; if one is missing, or an extra one appears, write down the roll number and time.</p>
+<table class="grid">
+  <thead><tr><th style="width:12%">Time</th><th>Participants do</th><th style="width:34%">Expected on the dashboard</th></tr></thead>
+  <tr><td>11:30</td><td>Open <code>pandas.pydata.org</code> and click around</td><td>Tile green. No flag</td></tr>
+  <tr><td>11:32</td><td>Open <code>bbc.com/news</code> in a new tab, wait 10 seconds, close it</td><td>Tile red for about 10 seconds; one <span class="pill high">high</span> "Visited a site that is not allowed: bbc.com/news"</td></tr>
+  <tr><td>11:33</td><td>Switch to another app for 10 seconds, then back</td><td>Tile red; one <span class="pill high">high</span> "Switched to another app or window"</td></tr>
+  <tr><td>11:34 to 11:37</td><td>Open <code>youtube.com</code> in a new tab, go back to pandas, close YouTube at 11:37</td><td>Tile stays green with "Other tabs open: youtube.com"; one <span class="pill low">low</span> "Has a tab open on a site that is not allowed"</td></tr>
+  <tr><td>11:38 to 12:15</td><td>The EDA questions in Colab and the documentation sites</td><td>Ideally no new flags. A <span class="pill low">low</span> "tab open" flag means they left another tab open from before (for example email)</td></tr>
+</table>
+<figure><img src="img/dash-filter.png" alt="Not joined filter"><figcaption>The "Not joined" filter shows who still needs help at 11:25</figcaption></figure>
+
+</body>
+</html>

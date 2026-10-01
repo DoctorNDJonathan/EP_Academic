@@ -1,0 +1,35 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>EDA Answer Key</title><link rel="stylesheet" href="manual.css"></head><body>
+<div class="cover"><img src="img/icon.png" alt=""><div><h1>Answer key: EDA on the diamonds dataset</h1><div class="sub">Exam Proctor faculty pilot · Monday 5 October 2026 · Part B, 11:38 to 12:15 · Old IQAC · 40 marks</div></div></div>
+<div class="box bad"><h4>For organisers and invigilators only</h4>Do not attach this to the participants' email. Every value below was computed by running the code shown on the seaborn <code>diamonds</code> dataset (seaborn 0.13.2, pandas 3.0.6).</div>
+<h3>First cell</h3><pre>import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = sns.load_dataset(&#x27;diamonds&#x27;)   # 53,940 diamonds, built into seaborn
+df.head()</pre>
+<div class="q"><span class="marks">2 marks</span><h3>Question 1</h3><p>Load the diamonds dataset and report the number of rows and columns.</p><pre>df.shape</pre><div class="answer"><b>Answer.</b> 53,940 rows and 10 columns.</div></div>
+<div class="q"><span class="marks">3 marks</span><h3>Question 2</h3><p>Show the data type of every column. Which columns are categorical?</p><pre>df.dtypes</pre><div class="answer"><b>Answer.</b> Categorical: <code>cut</code>, <code>color</code>, <code>clarity</code>. Numeric: <code>carat</code>, <code>depth</code>, <code>table</code>, <code>x</code>, <code>y</code>, <code>z</code> (float) and <code>price</code> (integer).</div></div>
+<div class="q"><span class="marks">3 marks</span><h3>Question 3</h3><p>How many missing values are there in the whole dataset? How many rows are exact duplicates?</p><pre>print(&#x27;Missing values:&#x27;, df.isna().sum().sum())
+print(&#x27;Duplicate rows:&#x27;, df.duplicated().sum())</pre><div class="answer"><b>Answer.</b> 0 missing values. 146 duplicate rows.</div></div>
+<div class="q"><span class="marks">4 marks</span><h3>Question 4</h3><p>For <code>price</code> and <code>carat</code>, report the mean, median, minimum and maximum. Is <code>price</code> right-skewed? Justify using the mean and the median.</p><pre>df[[&#x27;price&#x27;, &#x27;carat&#x27;]].agg([&#x27;mean&#x27;, &#x27;median&#x27;, &#x27;min&#x27;, &#x27;max&#x27;]).round(2)</pre><div class="answer"><b>Answer.</b> Price: mean 3,932.80, median 2,401, minimum 326, maximum 18,823. Carat: mean 0.80, median 0.70, minimum 0.20, maximum 5.01. Price is right-skewed: its mean is well above its median (skewness 1.62), because a few very expensive diamonds pull the mean up.</div></div>
+<div class="q"><span class="marks">4 marks</span><h3>Question 5</h3><p>How many diamonds are there of each <code>cut</code>? Which cut is the most common, and what percentage of all diamonds is it?</p><pre>counts = df[&#x27;cut&#x27;].value_counts()
+print(counts)
+print(&#x27;Share of the most common cut:&#x27;, round(100 * counts.iloc[0] / len(df), 1), &#x27;%&#x27;)</pre><div class="answer"><b>Answer.</b> Ideal 21,551; Premium 13,791; Very Good 12,082; Good 4,906; Fair 1,610. Ideal is the most common, at 40.0% of all diamonds.</div></div>
+<div class="q"><span class="marks">6 marks</span><h3>Question 6</h3><p>Compute the mean price for each <code>cut</code>, sorted from highest to lowest. The best cut (Ideal) has the lowest mean price. Compute the mean <code>carat</code> for each cut and use it to explain why.</p><pre>print(df.groupby(&#x27;cut&#x27;, observed=True)[&#x27;price&#x27;].mean().sort_values(ascending=False).round(0))
+print(df.groupby(&#x27;cut&#x27;, observed=True)[&#x27;carat&#x27;].mean().round(2))</pre><div class="answer"><b>Answer.</b> Mean price: Premium 4,584; Fair 4,359; Very Good 3,982; Good 3,929; Ideal 3,458. Mean carat: Fair 1.05; Premium 0.89; Good 0.85; Very Good 0.81; Ideal 0.70. Ideal diamonds are the smallest on average, and size (carat) drives price far more than cut, so comparing cuts without allowing for carat is misleading (a confounding variable).</div></div>
+<div class="q"><span class="marks">4 marks</span><h3>Question 7</h3><p>Plot a histogram of <code>price</code>. Describe its shape in one sentence.</p><pre>sns.histplot(data=df, x=&#x27;price&#x27;, bins=50)
+plt.title(&#x27;Distribution of diamond prices&#x27;)
+plt.show()</pre><div class="answer"><b>Answer.</b> Strongly right-skewed: most diamonds cost under about 5,000 (75% cost 5,324 or less), with a long tail up to 18,823.</div><figure><img src="img/key-q7.png" alt="Chart for question 7" style="max-width:150mm"></figure></div>
+<div class="q"><span class="marks">4 marks</span><h3>Question 8</h3><p>Draw a scatter plot of <code>carat</code> (x) against <code>price</code> (y). Use transparency or a random sample of 5,000 rows so the points are readable. Describe the relationship.</p><pre>sample = df.sample(5000, random_state=1)
+sns.scatterplot(data=sample, x=&#x27;carat&#x27;, y=&#x27;price&#x27;, alpha=0.3)
+plt.title(&#x27;Price against carat (5,000 diamonds)&#x27;)
+plt.show()</pre><div class="answer"><b>Answer.</b> A strong, positive, non-linear relationship: price rises faster than carat, and the spread of prices widens for larger stones. Points cluster at popular sizes such as 0.3, 0.7 and 1.0 carat.</div><figure><img src="img/key-q8.png" alt="Chart for question 8" style="max-width:150mm"></figure></div>
+<div class="q"><span class="marks">4 marks</span><h3>Question 9</h3><p>Draw a box plot of <code>price</code> for each <code>color</code>. Which colour has the highest median price? (D is the best colour and J the worst.)</p><pre>sns.boxplot(data=df, x=&#x27;color&#x27;, y=&#x27;price&#x27;)
+plt.title(&#x27;Price by colour&#x27;)
+plt.show()
+print(df.groupby(&#x27;color&#x27;, observed=True)[&#x27;price&#x27;].median().sort_values(ascending=False))</pre><div class="answer"><b>Answer.</b> J has the highest median price (4,234), then I (3,730) and H (3,460); D (1,838) and E (1,739) are the lowest. Again a size effect: J stones tend to be larger.</div><figure><img src="img/key-q9.png" alt="Chart for question 9" style="max-width:150mm"></figure></div>
+<div class="q"><span class="marks">6 marks</span><h3>Question 10</h3><p>Compute the correlation matrix of the numeric columns. Which variable is most strongly correlated with <code>price</code>, and what is the correlation? (Optional: show it as a heatmap.)</p><pre>corr = df.select_dtypes(&#x27;number&#x27;).corr()
+print(corr[&#x27;price&#x27;].sort_values(ascending=False).round(3))
+sns.heatmap(corr, annot=True, fmt=&#x27;.2f&#x27;, cmap=&#x27;Blues&#x27;)
+plt.show()</pre><div class="answer"><b>Answer.</b> Carat is the most strongly correlated with price (r = 0.922), followed by the dimensions x (0.884), y (0.865) and z (0.861). Depth (−0.011) and table (0.127) are barely related to price.</div><figure><img src="img/key-q10.png" alt="Chart for question 10" style="max-width:150mm"></figure></div>
+</body></html>

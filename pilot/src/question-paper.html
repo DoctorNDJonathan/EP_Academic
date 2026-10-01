@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>EDA Question Paper</title><link rel="stylesheet" href="manual.css"></head><body>
+<div class="cover"><img src="img/icon.png" alt=""><div><h1>Exploratory Data Analysis: the diamonds dataset</h1><div class="sub">Exam Proctor faculty pilot · Monday 5 October 2026 · Part B, 11:38 to 12:15 · Old IQAC · 40 marks</div></div></div>
+<div class="box tip"><h4>Instructions</h4><ul>
+  <li>Work in <b>Google Colab</b>: open <code>colab.research.google.com</code> and choose <b>New notebook</b>.</li>
+  <li>You may also use the documentation at <code>pandas.pydata.org</code>, <code>seaborn.pydata.org</code> and <code>matplotlib.org</code>. Every other website, and every other app on the laptop, is reported.</li>
+  <li>Type the code below into the first cell and run it with <b>Shift + Enter</b>. Then answer each question in its own cell; add a text cell where a question asks you to explain.</li>
+  <li>This is a pilot of the monitoring tool. Nobody is graded; the marks show how much detail is expected.</li></ul></div>
+<h3>First cell: load the data</h3><pre>import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = sns.load_dataset(&#x27;diamonds&#x27;)   # 53,940 diamonds, built into seaborn
+df.head()</pre><h2>Questions</h2>
+<div class="q"><span class="marks">2 marks</span><h3>Question 1</h3><p>Load the diamonds dataset and report the number of rows and columns.</p></div>
+<div class="q"><span class="marks">3 marks</span><h3>Question 2</h3><p>Show the data type of every column. Which columns are categorical?</p></div>
+<div class="q"><span class="marks">3 marks</span><h3>Question 3</h3><p>How many missing values are there in the whole dataset? How many rows are exact duplicates?</p></div>
+<div class="q"><span class="marks">4 marks</span><h3>Question 4</h3><p>For <code>price</code> and <code>carat</code>, report the mean, median, minimum and maximum. Is <code>price</code> right-skewed? Justify using the mean and the median.</p></div>
+<div class="q"><span class="marks">4 marks</span><h3>Question 5</h3><p>How many diamonds are there of each <code>cut</code>? Which cut is the most common, and what percentage of all diamonds is it?</p></div>
+<div class="q"><span class="marks">6 marks</span><h3>Question 6</h3><p>Compute the mean price for each <code>cut</code>, sorted from highest to lowest. The best cut (Ideal) has the lowest mean price. Compute the mean <code>carat</code> for each cut and use it to explain why.</p></div>
+<div class="q"><span class="marks">4 marks</span><h3>Question 7</h3><p>Plot a histogram of <code>price</code>. Describe its shape in one sentence.</p></div>
+<div class="q"><span class="marks">4 marks</span><h3>Question 8</h3><p>Draw a scatter plot of <code>carat</code> (x) against <code>price</code> (y). Use transparency or a random sample of 5,000 rows so the points are readable. Describe the relationship.</p></div>
+<div class="q"><span class="marks">4 marks</span><h3>Question 9</h3><p>Draw a box plot of <code>price</code> for each <code>color</code>. Which colour has the highest median price? (D is the best colour and J the worst.)</p></div>
+<div class="q"><span class="marks">6 marks</span><h3>Question 10</h3><p>Compute the correlation matrix of the numeric columns. Which variable is most strongly correlated with <code>price</code>, and what is the correlation? (Optional: show it as a heatmap.)</p></div>
+<p class="small" style="margin-top:14px">Dataset: <code>diamonds</code> from the seaborn library: 53,940 diamonds with price, carat, cut, colour, clarity and dimensions. End of question paper.</p></body></html>

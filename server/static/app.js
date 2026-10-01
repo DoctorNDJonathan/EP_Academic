@@ -83,6 +83,7 @@ window.addEventListener("hashchange", () => me && route());
 function route() {
   stopPolling();
   closeDrawer();
+  window.scrollTo(0, 0); // each page starts at the top, not at the previous page's scroll position
   document.title = "Exam Proctor";
   const h = location.hash.replace(/^#\/?/, "").split("/");
   document.querySelectorAll("[data-nav]").forEach((a) => a.classList.toggle("active", a.dataset.nav === (h[0] || "exams")));
