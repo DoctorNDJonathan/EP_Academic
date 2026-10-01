@@ -196,8 +196,21 @@ def _exam_public(e, t):
 
 
 @app.get("/api/health")
-def health():
-    return {"ok": True, "server_time": db.now(), "database": "postgres" if db.PG else "sqlite"}
+def health(db_check: bool = False):
+    out = {"ok": True, "server_time": db.now(), "database": "postgres" if db.PG else "sqlite"}
+    if db_check:   # ?db_check=true: time the round trips to the database (diagnostics)
+        if _limited("db-check", "all", 30, 60):
+            raise HTTPException(429, "Too many checks; try again in a minute.")
+        t0 = time.perf_counter()
+        with db.conn() as c:
+            t1 = time.perf_counter()
+            for _ in range(5):
+                c.execute("SELECT 1").fetchone()
+            t2 = time.perf_counter()
+        t3 = time.perf_counter()
+        out["db_ms"] = {"get_connection": round((t1 - t0) * 1000, 1), "one_query": round((t2 - t1) * 200, 1),
+                        "commit_and_return": round((t3 - t2) * 1000, 1)}
+    return out
 
 
 @app.get("/api/exams/{code}")
