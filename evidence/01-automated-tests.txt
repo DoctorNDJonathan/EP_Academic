@@ -1,8 +1,11 @@
-Exam Proctor v3.0.0 automated end-to-end test (server/e2e_test.py)
-Run: 2026-10-01 12:31 IST on macOS 26.4, Python 3.14.5, git commit 205422f
+Exam Proctor automated tests
+Run: 2026-10-01 12:38 IST on macOS 26.4, Python 3.14.5, Node v26.0.0, git commit 2e15ecd, extension 3.0.1
 
-== SQLite (laptop) ==
-ALL 46 CHECKS PASSED (sqlite)
+== Server end-to-end, SQLite (server/e2e_test.py) ==
+ALL 47 CHECKS PASSED (sqlite)
 
-== PostgreSQL 17 (same engine as Supabase) ==
-ALL 46 CHECKS PASSED (postgres)
+== Server end-to-end, PostgreSQL 17 (server/e2e_test.py) ==
+ALL 47 CHECKS PASSED (postgres)
+
+== Extension logic (tests/extension_test.mjs) ==
+ALL 8 EXTENSION CHECKS PASSED
