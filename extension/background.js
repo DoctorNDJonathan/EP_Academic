@@ -19,6 +19,7 @@ const OUTSIDE = "(outside-browser)";
 const LOCKED = "(locked)";
 const NEW_TAB = "new-tab";
 const INTERNAL = new Set(["browser-internal", "local-file"]);
+const SILENCE_S = 90; // no tick for this long = the extension was not running (browser closed, disabled, asleep)
 
 // ---------- state helpers ----------
 let chain = Promise.resolve();
@@ -99,6 +100,12 @@ async function refresh() {
   if (!s || s.finished) return false;
   const t = nowServer(s);
   const obs = running(s, t) ? await observe() : null;
+  // After a silence, end the open visit at the last heartbeat: never stretch it over time nobody monitored.
+  if (s.current && s.lastBeat && t - s.lastBeat > SILENCE_S) {
+    if (s.lastBeat - s.current.start_ts >= 1) s.queue.push({ ...s.current, end_ts: Math.min(s.lastBeat, s.end_ts) });
+    s.current = null;
+    s.lastBeat = t; // monitoring resumes now
+  }
   const cur = s.current;
   const changed = !obs || !cur || cur.kind !== obs.kind || cur.domain !== obs.domain || cur.path !== obs.path;
 
@@ -137,14 +144,17 @@ async function push() {
   if (!s || !s.token) return;
   if (s.finished && s.queue.length === 0) return;
   const events = s.queue.slice(0, 300);
+  const heartbeats = (s.heartbeats || []).slice(0, 600);
   try {
     const r = await call("POST", "/api/ingest", {
       events,
+      heartbeats,
       current: running(s) ? s.current : null,
       open_tabs: running(s) ? await openTabs() : [],
     }, s.token);
     const latest = await getState(); // queue may have grown while uploading
     latest.queue = latest.queue.slice(events.length);
+    latest.heartbeats = (latest.heartbeats || []).slice(heartbeats.length);
     latest.offset = r.server_time - Date.now() / 1000;
     // Invigilators can change the allowlist or extend the exam while it runs.
     Object.assign(latest, { allowed_sites: r.allowed_sites, grace_s: r.grace_s, flag_outside: r.flag_outside,
@@ -158,7 +168,7 @@ async function push() {
     if (!latest) return;
     latest.lastError = e.status === 401 ? "Session expired. Join the exam again."
       : e.status === 409 ? null : "Offline. Activity is saved and will be sent when you reconnect.";
-    if (e.status === 409) { latest.queue = []; latest.finished = true; }
+    if (e.status === 409) { latest.queue = []; latest.heartbeats = []; latest.finished = true; }
     await setState(latest);
   }
 }
@@ -195,8 +205,20 @@ async function onActivity() {
   await feedback();
 }
 
+// Every 30 s tick while the exam runs. Kept through network drops and sent later, these prove the
+// extension was running during a gap (a disabled extension or a closed browser records none).
+async function recordHeartbeat() {
+  const s = await getState();
+  if (!running(s)) return;
+  const t = nowServer(s);
+  s.heartbeats = [...(s.heartbeats || []), t].slice(-2000);
+  s.lastBeat = t;
+  await setState(s);
+}
+
 async function tick() {
-  await refresh();
+  await refresh();          // first: it checks the silence since the previous heartbeat
+  await recordHeartbeat();
   await push();
   await feedback();
   const s = await getState();
@@ -232,12 +254,13 @@ async function join(examCode, rollNo, pin) {
     token: r.token, start_ts: r.start_ts, end_ts: r.end_ts,
     allowed_sites: r.allowed_sites, grace_s: r.grace_s, flag_outside: r.flag_outside,
     offset: r.server_time - Date.now() / 1000,
-    current: null, queue: [], finished: false, joinedAt: Date.now(),
+    current: null, queue: [], heartbeats: [], lastBeat: null, finished: false, joinedAt: Date.now(),
   });
   chrome.runtime.setUninstallURL(`${SERVER}/bye?k=${encodeURIComponent(r.uninstall_key)}`);
   chrome.idle.setDetectionInterval(IDLE_AFTER_S);
   await chrome.alarms.create(TICK, { periodInMinutes: 0.5 }); // every 30 s
   await refresh();
+  await recordHeartbeat();
   await push();
   await feedback();
   return r;

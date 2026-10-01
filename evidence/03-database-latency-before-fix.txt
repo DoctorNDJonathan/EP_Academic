@@ -1,0 +1,16 @@
+Database round-trip timing from the live server (GET /api/health?db_check=true)
+Run: 2026-10-01 12:34 IST, git commit 0cb7a1a
+Fields: get_connection = take a pooled connection (includes 1 health-check round trip); one_query = average of 5 'SELECT 1'; commit_and_return = commit + return to pool
+
+get_connection  179.3 ms   one_query  216.2 ms   commit_and_return  179.3 ms
+get_connection  188.2 ms   one_query  215.7 ms   commit_and_return  179.1 ms
+get_connection  179.6 ms   one_query  215.2 ms   commit_and_return  179.7 ms
+get_connection  179.9 ms   one_query  215.5 ms   commit_and_return  180.4 ms
+get_connection  179.3 ms   one_query  215.4 ms   commit_and_return  179.4 ms
+get_connection  179.3 ms   one_query  215.5 ms   commit_and_return  179.4 ms
+get_connection  179.5 ms   one_query  215.6 ms   commit_and_return  179.3 ms
+get_connection  179.4 ms   one_query  215.5 ms   commit_and_return  179.3 ms
+get_connection  179.5 ms   one_query  215.4 ms   commit_and_return  179.4 ms
+get_connection  179.9 ms   one_query  215.1 ms   commit_and_return  179.6 ms
+
+Interpretation: ~180-215 ms per round trip = app and database in different regions (same region: ~1-2 ms).

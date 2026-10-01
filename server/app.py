@@ -38,6 +38,7 @@ STATIC = Path(__file__).resolve().parent / "static"
 
 END_GRACE_S = 900            # accept queued uploads for 15 min after the exam ends
 GAP_S = 90                   # no contact for this long -> "offline" + monitoring_gap flag
+HEARTBEAT_GAP_S = 75         # offline heartbeats this close together = the extension was running
 MAX_CLOCK_AHEAD_S = 120
 SESSION_COOKIE = "proctor_session"
 SESSION_TTL_S = 12 * 3600
@@ -187,6 +188,7 @@ class IngestIn(BaseModel):
     events: list[Seg] = Field(default=[], max_length=500)
     current: Seg | None = None
     open_tabs: list[Tab] = Field(default=[], max_length=200)
+    heartbeats: list[float] = Field(default=[], max_length=600)   # extension's 30 s ticks, kept through network drops
 
 
 def _exam_public(e, t):
@@ -318,19 +320,22 @@ def ingest(body: IngestIn, request: Request):
         c.executemany("INSERT INTO events(exam_code, roll_no, kind, domain, path, title, start_ts, end_ts, allowed) "
                       "VALUES (?,?,?,?,?,?,?,?,?)", rows)
 
-        # 3. Queued segments that cover a gap mean it was only a network drop: downgrade it.
-        if rows:
+        # 3. A gap is only a network drop if the extension kept ticking through it: its 30 s heartbeats
+        #    are queued while offline and arrive now. A disabled extension or closed browser sends none.
+        #    (Activity segments are NOT used: a segment can span a period the extension was switched off.)
+        if body.heartbeats:
             for g in c.execute("SELECT id, seg_start, duration_s FROM flags WHERE exam_code=? AND roll_no=? "
                                "AND rule='monitoring_gap' AND level<>'LOW'", (code, roll)).fetchall():
                 gs, ge = g["seg_start"], g["seg_start"] + g["duration_s"]
                 if ge - gs <= 0:
                     continue
-                cov = c.execute(f"SELECT COALESCE(SUM({db.LEAST}(end_ts, ?) - {db.GREATEST}(start_ts, ?)), 0) FROM events "
-                                "WHERE exam_code=? AND roll_no=? AND end_ts>? AND start_ts<?",
-                                (ge, gs, code, roll, gs, ge)).fetchone()[0]
-                if cov / (ge - gs) >= 0.9:
+                beats = sorted({round(h) for h in body.heartbeats if gs <= h <= ge})
+                edges = [gs, *beats, ge]
+                longest_silence = max(b2 - b1 for b1, b2 in zip(edges, edges[1:]))
+                if longest_silence <= HEARTBEAT_GAP_S:
                     c.execute("UPDATE flags SET level='LOW', detail=? WHERE id=?",
-                              ("Network drop: activity during the gap was recorded and uploaded later", g["id"]))
+                              ("Network drop: the extension kept running offline and sent its records on reconnecting",
+                               g["id"]))
 
         # 4. What the student is doing right now
         cur, allowed_now = body.current, True

@@ -1,0 +1,42 @@
+Exam Proctor live deployment checks
+Run: 2026-10-01 12:31 IST from macOS 26.4, curl 8.7.1
+Target: https://exam-proctor-rhbo.onrender.com
+
+-- 1. Health and database
+{"ok":true,"server_time":1790838120.1494935,"database":"postgres"}
+
+-- 2. TLS certificate
+SSL connection using TLSv1.3 / AEAD-CHACHA20-POLY1305-SHA256 / [blank] / UNDEF
+subject: CN=onrender.com
+expire date: Dec 20 23:04:28 2026 GMT
+issuer: C=US; O=Google Trust Services; CN=WE1
+
+-- 3. HTTP is redirected to HTTPS
+http:// -> 301 https://exam-proctor-rhbo.onrender.com/dashboard
+
+-- 4. Security headers on /dashboard
+content-security-policy: default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000
+x-content-type-options: nosniff
+x-frame-options: DENY
+
+-- 5. Admin API refuses anonymous access
+GET /api/admin/exams -> 401
+GET /api/admin/users -> 401
+POST /api/admin/exams (no session) -> 401
+
+-- 6. Developer docs disabled in production
+/docs -> 404
+/openapi.json -> 404
+
+-- 7. Student endpoints validate input
+{"detail":"No exam with this code. Check the code with your instructor."}  [404]
+{"detail":"Missing session token."}  [401]
+
+-- 8. Privacy policy
+/privacy -> 200, Nikhil D Jonathan, XIME Bangalore;nikhildj@xime.org;
+
+-- 9. Response time, 20 requests each (seconds)
+/api/health  min 0.113  median 0.129  p95 0.141  max 0.160
+/api/exams/NOSUCHEXAM  min 0.801  median 0.844  p95 0.990  max 1.013

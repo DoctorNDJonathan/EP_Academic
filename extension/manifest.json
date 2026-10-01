@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Exam Proctor",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Checks that you stay on the sites your instructor allows during an exam you have joined, only between its start and end time.",
   "permissions": ["tabs", "idle", "alarms", "storage", "notifications"],
   "host_permissions": ["https://SERVER_HOST_PLACEHOLDER/*"],

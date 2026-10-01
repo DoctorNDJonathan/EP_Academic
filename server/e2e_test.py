@@ -42,6 +42,11 @@ def req(method, path, body=None, tok=None, admin=True, raw=False):
         return e.code, json.loads(e.read() or b"{}")
 
 
+def db_rows(sql):
+    with db.conn() as c:
+        return c.execute(sql).fetchall()
+
+
 def check(name, cond):
     global ok
     if not cond:
@@ -103,12 +108,16 @@ with db.conn() as c:                                              # simulate 200
     c.execute("UPDATE presence SET last_seen=? WHERE exam_code='E2E' AND roll_no='R1'", (time.time() - 200,))
 app._mark_gaps()
 T = time.time()
+gap_level = lambda: [tuple(r) for r in db_rows("SELECT level FROM flags WHERE exam_code='E2E' AND rule='monitoring_gap'")]
+# Visits that span the gap prove nothing (the extension may have been switched off): stays MEDIUM
 req("POST", "/api/ingest", {"events": [{"kind": "tab", "domain": "exam.example.edu", "path": "/q", "title": "Q", "start_ts": T - 200, "end_ts": T - 1}],
                             "current": {"kind": "tab", "domain": "exam.example.edu", "path": "/q", "title": "Q", "start_ts": T - 1}}, tok=tok, admin=False)
+check("gap NOT excused by visits alone", gap_level() == [("MEDIUM",)])
+# Heartbeats every 30 s through the gap = the extension kept running offline: downgraded to LOW
+req("POST", "/api/ingest", {"heartbeats": [T - 200 + 30 * i for i in range(7)]}, tok=tok, admin=False)
+check("gap downgraded by offline heartbeats", gap_level() == [("LOW",)])
 with db.conn() as c:
-    g = [tuple(r) for r in c.execute("SELECT level FROM flags WHERE exam_code='E2E' AND rule='monitoring_gap'")]
     k = c.execute("SELECT uninstall_key FROM participants WHERE exam_code='E2E' AND roll_no='R1'").fetchone()["uninstall_key"]
-check("gap downgraded after backfill", g == [("LOW",)])
 op.open(S + "/bye?k=" + k).read()
 J("R1", dev="other-device-22")
 J("R2", dev="other-device-22")
