@@ -6,3 +6,9 @@ __pycache__/
 .dev.env
 dist/
 .DS_Store
+
+# Organiser-only exam material: keep out of the (public) repository
+pilot/answer-key.pdf
+pilot/src/answer-key.html
+pilot/EDA_Diamonds_Solutions.ipynb
+pilot/src/img/key-*.png
