@@ -54,7 +54,7 @@
   <li>Click the blue <b>Add to Chrome</b> button, then <b>Add extension</b> in the box that appears.</li>
   <li><b>Pin the icon</b> so it is always visible: click the puzzle-piece icon at the top right of Chrome, then the pin next to <b>Exam Proctor</b>. A small navy stopwatch icon appears in the toolbar.</li>
   <li>Click the stopwatch icon. <span class="see">You should see:</span> a notice and a form asking for the exam code, roll number and PIN. Close it for now; you join on Monday.</li>
-  <li><b>Sign in to Google in Chrome</b> and open <code>colab.research.google.com</code> once, to check that Colab opens. Signing in now means you will not need to sign in during the test.</li>
+  <li><b>Create a free Kaggle account and sign in.</b> Go to <code>kaggle.com</code> and click <b>Register</b> (<b>Sign in with Google</b> is quickest). Then click <b>Create → New Notebook</b> once to check that the notebook editor opens. Stay signed in to Kaggle in Chrome, so you will not need to sign in during the test. No phone verification is needed.</li>
 </ol>
 <div class="box tip">
   <h4>On a Mac: let Chrome show notifications</h4>
@@ -68,10 +68,10 @@
 <h2>2. On the day: timetable</h2>
 <table class="grid">
   <thead><tr><th style="width:18%">Time</th><th>What happens</th></tr></thead>
-  <tr><td>11:15</td><td>Arrive, connect to Wi-Fi, open Chrome and close the tabs you don't need</td></tr>
+  <tr><td>11:15</td><td>Arrive, connect to Wi-Fi, open Chrome, close the tabs you don't need, and check you are still signed in to <code>kaggle.com</code></td></tr>
   <tr><td>11:20</td><td>The PIN is shown on the screen. Join the exam (section 3)</td></tr>
   <tr><td>11:30</td><td>Monitoring starts. <b>Part A: system check</b>, 7 minutes (section 5)</td></tr>
-  <tr><td>11:38</td><td><b>Part B: the mock exam</b>, an analysis of the diamonds dataset in Google Colab (section 6)</td></tr>
+  <tr><td>11:38</td><td><b>Part B: the mock exam</b>, an analysis of the diamonds dataset in a Kaggle notebook (section 6)</td></tr>
   <tr><td>12:15</td><td>Stop working; keep your notebook if you wish</td></tr>
   <tr><td>12:20</td><td>Monitoring ends. Fill in the feedback form (its link is shown on the screen)</td></tr>
   <tr><td>12:20 to 12:30</td><td>Open discussion: what worked, what didn't</td></tr>
@@ -116,17 +116,17 @@
 </ol>
 
 <h2>6. Part B: the mock exam (11:38 to 12:15)</h2>
-<p>You will receive a printed question paper with 10 short questions on <b>exploratory data analysis of the diamonds dataset</b>, which is built into the seaborn library. Work in Google Colab.</p>
+<p>You will receive a printed question paper with 10 short questions on <b>exploratory data analysis of the diamonds dataset</b>: 53,940 diamonds with their price, carat, cut, colour and clarity. You work in a Kaggle notebook that already has the data attached.</p>
 <ol class="steps">
-  <li>Open <code>colab.research.google.com</code> and choose <b>New notebook</b> (or <b>File → New notebook in Drive</b>).</li>
-  <li>Type the first code cell from the question paper to load the data, and run it with <b>Shift + Enter</b>.</li>
-  <li>Answer each question in a new code cell. Add a text cell where a question asks you to explain.</li>
+  <li>At 11:38 the notebook's address is shown on the projector. Type it into Chrome and click <b>Copy &amp; Edit</b> (top right). Your own copy opens, with the data attached.</li>
+  <li>Run the first cell with <b>Shift + Enter</b>. The first run takes about 30 seconds while Kaggle starts the notebook.</li>
+  <li>Answer each question in the empty cell below it. Add a text cell (<b>+ Markdown</b>) where a question asks you to explain.</li>
 </ol>
 <div class="box ok">
   <h4>Allowed during the exam</h4>
   <ul>
-    <li><code>colab.research.google.com</code>: any notebook</li>
-    <li><code>accounts.google.com</code>: Google sign-in</li>
+    <li><code>kaggle.com</code>: <b>your own</b> notebook</li>
+    <li><code>accounts.google.com</code>: Google sign-in, if you use it for Kaggle</li>
     <li>Documentation: <code>pandas.pydata.org</code>, <code>seaborn.pydata.org</code>, <code>matplotlib.org</code></li>
   </ul>
 </div>
@@ -135,7 +135,7 @@
   <ul>
     <li>Google Search, ChatGPT, Gemini or any other AI tool, Stack Overflow, YouTube</li>
     <li>Email, WhatsApp or other apps on the laptop. Use your phone only for this guide</li>
-    <li><code>colab.google</code>, which now leads to Google's developer site. Type <code>colab.research.google.com</code> in full</li>
+    <li>Other people's notebooks, datasets' Code tabs and discussions on Kaggle. They are on an allowed site, so you will not see a warning, but every page you open is listed for the invigilators</li>
   </ul>
 </div>
 <div class="box tip">
@@ -161,7 +161,8 @@
   <tr><td>"Cannot reach the exam server"</td><td>Check the Wi-Fi. The server may be waking up: wait one minute and try again.</td></tr>
   <tr><td>"No exam with this code"</td><td>Check the code: <code>FACPILOT1</code>, capital letters, ending in the digit one.</td></tr>
   <tr><td>"Incorrect exam PIN"</td><td>Re-type the PIN from the screen.</td></tr>
-  <tr><td>The <span class="badge alert">!</span> label while you are on Colab</td><td>Check the address bar says <code>colab.research.google.com</code>. If it does, raise your hand.</td></tr>
+  <tr><td>The <span class="badge alert">!</span> label while you are in Kaggle</td><td>Check the address bar starts with <code>kaggle.com</code>. If it does, raise your hand.</td></tr>
+  <tr><td>Copy &amp; Edit is missing or fails</td><td>Check you are signed in to Kaggle. Or click <b>Create → New Notebook</b>, then <b>Add Input</b> in the right-hand panel, search <b>diamonds</b> (by Shivam Agrawal) and click <b>+</b>; then type the first cell from the question paper.</td></tr>
   <tr><td>Chrome crashed or the laptop restarted</td><td>Reopen Chrome, click the icon and join again with the same details. Nothing is lost.</td></tr>
   <tr><td>The Wi-Fi drops</td><td>Carry on working. The extension saves everything and sends it when you reconnect.</td></tr>
   <tr><td>Anything else</td><td>Raise your hand, or email nikhildj@xime.org</td></tr>

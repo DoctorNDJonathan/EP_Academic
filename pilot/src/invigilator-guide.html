@@ -27,7 +27,7 @@
 
 <h2>1. How it works in one minute</h2>
 <ul>
-  <li>Each exam has its own list of <b>allowed sites</b>. For this pilot: Google Colab, Google sign-in, and the pandas, seaborn and matplotlib documentation.</li>
+  <li>Each exam has its own list of <b>allowed sites</b>. For this pilot: Kaggle, Google sign-in, and the pandas, seaborn and matplotlib documentation.</li>
   <li>Participants join from the Chrome extension with the <b>exam code</b>, their roll number and a <b>PIN</b> that you show at 11:20.</li>
   <li>From 11:30 the extension reports the page each participant is on. Anything not on the list, or switching to another app, turns their <b>tile red</b> and raises a <b>flag</b> within seconds. The participant is warned on their own screen at the same moment.</li>
   <li>A flag is a <b>prompt to look</b>, never a verdict. You confirm or dismiss each one, with a note.</li>
@@ -62,11 +62,11 @@
   <tr><td>Exam PIN</td><td>A new 6-digit number, shown only at 11:20</td></tr>
   <tr><td>Grace period</td><td>3 seconds</td></tr>
   <tr><td>Flag leaving Chrome</td><td>On</td></tr>
-  <tr><td>Allowed sites</td><td><code>colab.research.google.com</code>, <code>accounts.google.com</code>, <code>pandas.pydata.org</code>, <code>seaborn.pydata.org</code>, <code>matplotlib.org</code> (one per line)</td></tr>
+  <tr><td>Allowed sites</td><td><code>kaggle.com</code>, <code>accounts.google.com</code>, <code>pandas.pydata.org</code>, <code>seaborn.pydata.org</code>, <code>matplotlib.org</code> (one per line)</td></tr>
   <tr><td>Class roster</td><td>Optional: one line per confirmed participant, <code>emailname,Full Name</code></td></tr>
 </table>
 <figure><img src="img/dash-allowed-sites.png" alt="Allowed sites and preview"><figcaption>Allowed sites: the preview under the box explains how each line is applied</figcaption></figure>
-<p>Before the exam, paste a few links into <b>Test a link</b>, such as a Colab notebook, a pandas documentation page and <code>bbc.com/news</code>, and check each result. A link that would be flagged has an <b>Allow</b> button next to it:</p>
+<p>Before the exam, paste a few links into <b>Test a link</b>, such as a Kaggle notebook, a pandas documentation page and <code>bbc.com/news</code>, and check each result. A link that would be flagged has an <b>Allow</b> button next to it:</p>
 <figure><img src="img/dash-test-link.png" alt="Test a link" style="width:120mm"><figcaption>Test a link: paste any address to see whether it is allowed</figcaption></figure>
 
 <h2>4. Exam-day timeline for invigilators</h2>
@@ -76,7 +76,7 @@
   <tr><td>11:15</td><td>Welcome participants. Check each has Chrome and the stopwatch icon pinned. Hand out the printed question papers face down.</td></tr>
   <tr><td>11:20</td><td>Show the PIN on the projector. Watch <b>Joined X / Y</b> rise; use the <b>Not joined</b> filter to find anyone who needs help.</td></tr>
   <tr><td>11:30 to 11:37</td><td>Part A, system check: announce each step at its time (Appendix). Expect red tiles: they are deliberate.</td></tr>
-  <tr><td>11:38</td><td>Part B: "Turn over your question papers. Open colab.research.google.com and begin."</td></tr>
+  <tr><td>11:38</td><td>Part B: put the Kaggle notebook address on the projector. "Turn over your question papers. Open the notebook, click Copy &amp; Edit, and begin."</td></tr>
   <tr><td>11:38 to 12:15</td><td>Watch for red tiles. If many participants are flagged on the same site, it may be a site the exam needs (section 7).</td></tr>
   <tr><td>12:15</td><td>"Please stop working." Keep the live view open until 12:20.</td></tr>
   <tr><td>12:20</td><td>Show the feedback form link. Lead a 10-minute discussion.</td></tr>
@@ -117,6 +117,7 @@
   <tr><td>An amber (offline) tile</td><td>Their Wi-Fi dropped or Chrome closed. Check on them quietly. If it was only Wi-Fi, the flag drops to low on its own when they reconnect.</td></tr>
   <tr><td>Grey (not joined) after 11:30</td><td>Help them join: code <code>FACPILOT1</code>, email name, PIN. They can join at any time before 12:20.</td></tr>
   <tr><td>"Cannot reach the exam server" for many people</td><td>Check the room's Wi-Fi, then open the dashboard. If the dashboard also fails, note the time; the extensions keep recording and send everything when the server returns.</td></tr>
+  <tr><td>Activity log shows other people's Kaggle notebooks, a dataset's <b>Code</b> tab or discussions</td><td>Kaggle is an allowed site, so these pages raise no flag; you only see them in the participant's activity log. Note the times and review them after the exam as possible copying. For future exams, prefer platforms where students can't browse others' solutions.</td></tr>
   <tr><td>"Extension removed" flag</td><td>Ask the participant to reinstall it from the store and rejoin with the same details. Rejoining after a reinstall also adds a <span class="pill med">medium</span> "rejoined from a different browser" flag; that is expected.</td></tr>
 </table>
 
@@ -137,7 +138,7 @@
   <tr><td>11:32</td><td>Open <code>bbc.com/news</code> in a new tab, wait 10 seconds, close it</td><td>Tile red for about 10 seconds; one <span class="pill high">high</span> "Visited a site that is not allowed: bbc.com/news"</td></tr>
   <tr><td>11:33</td><td>Switch to another app for 10 seconds, then back</td><td>Tile red; one <span class="pill high">high</span> "Switched to another app or window"</td></tr>
   <tr><td>11:34 to 11:37</td><td>Open <code>youtube.com</code> in a new tab, go back to pandas, close YouTube at 11:37</td><td>Tile stays green with "Other tabs open: youtube.com"; one <span class="pill low">low</span> "Has a tab open on a site that is not allowed"</td></tr>
-  <tr><td>11:38 to 12:15</td><td>The EDA questions in Colab and the documentation sites</td><td>Ideally no new flags. A <span class="pill low">low</span> "tab open" flag means they left another tab open from before (for example email)</td></tr>
+  <tr><td>11:38 to 12:15</td><td>The EDA questions in their own Kaggle notebook and the documentation sites</td><td>Ideally no new flags. A <span class="pill low">low</span> "tab open" flag means they left another tab open from before (for example email). In the activity log, Kaggle pages should be their own notebook (<code>kaggle.com/code/&lt;their name&gt;/…/edit</code>)</td></tr>
 </table>
 <figure><img src="img/dash-filter.png" alt="Not joined filter"><figcaption>The "Not joined" filter shows who still needs help at 11:25</figcaption></figure>
 

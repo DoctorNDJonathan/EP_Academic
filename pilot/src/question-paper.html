@@ -1,17 +1,26 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><title>EDA Question Paper</title><link rel="stylesheet" href="manual.css"></head><body>
 <div class="cover"><img src="img/icon.png" alt=""><div><h1>Exploratory Data Analysis: the diamonds dataset</h1><div class="sub">Exam Proctor faculty pilot · Monday 5 October 2026 · Part B, 11:38 to 12:15 · Old IQAC · 40 marks</div></div></div>
 <div class="box tip"><h4>Instructions</h4><ul>
-  <li>Work in <b>Google Colab</b>: open <code>colab.research.google.com</code> and choose <b>New notebook</b>.</li>
-  <li>You may also use the documentation at <code>pandas.pydata.org</code>, <code>seaborn.pydata.org</code> and <code>matplotlib.org</code>. Every other website, and every other app on the laptop, is reported.</li>
-  <li>Type the code below into the first cell and run it with <b>Shift + Enter</b>. Then answer each question in its own cell; add a text cell where a question asks you to explain.</li>
+  <li>Work in <b>Kaggle</b>. Open the notebook address shown on the projector and click <b>Copy &amp; Edit</b>. This makes your own copy with the diamonds data already attached.</li>
+  <li>If Copy &amp; Edit does not work: on <code>kaggle.com</code> click <b>Create → New Notebook</b>, then <b>Add Input</b> in the right-hand panel, search for <b>diamonds</b> (by Shivam Agrawal) and click <b>+</b>.</li>
+  <li>You may also use the documentation at <code>pandas.pydata.org</code>, <code>seaborn.pydata.org</code> and <code>matplotlib.org</code>. Stay in your own notebook: other people's Kaggle notebooks and discussions, every other website, and every other app on the laptop are reported.</li>
+  <li>Run the first cell (below) with <b>Shift + Enter</b>; the first run takes about 30 seconds while Kaggle starts. Then answer each question in its own cell, adding a text cell where a question asks you to explain.</li>
   <li>This is a pilot of the monitoring tool. Nobody is graded; the marks show how much detail is expected.</li></ul></div>
-<h3>First cell: load the data</h3><pre>import pandas as pd
+<h3>First cell: load the data (already in the notebook)</h3><pre>import glob
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-df = sns.load_dataset(&#x27;diamonds&#x27;)   # 53,940 diamonds, built into seaborn
+# The diamonds dataset attached to this notebook (Kaggle dataset: shivam2503/diamonds)
+path = glob.glob(&#x27;/kaggle/input/**/diamonds.csv&#x27;, recursive=True)[0]
+df = pd.read_csv(path, index_col=0)   # the first column is only a row number
+
+# Same category order as seaborn&#x27;s built-in copy: best grade first
+df[&#x27;cut&#x27;] = pd.Categorical(df[&#x27;cut&#x27;], [&#x27;Ideal&#x27;, &#x27;Premium&#x27;, &#x27;Very Good&#x27;, &#x27;Good&#x27;, &#x27;Fair&#x27;])
+df[&#x27;color&#x27;] = pd.Categorical(df[&#x27;color&#x27;], [&#x27;D&#x27;, &#x27;E&#x27;, &#x27;F&#x27;, &#x27;G&#x27;, &#x27;H&#x27;, &#x27;I&#x27;, &#x27;J&#x27;])
+df[&#x27;clarity&#x27;] = pd.Categorical(df[&#x27;clarity&#x27;], [&#x27;IF&#x27;, &#x27;VVS1&#x27;, &#x27;VVS2&#x27;, &#x27;VS1&#x27;, &#x27;VS2&#x27;, &#x27;SI1&#x27;, &#x27;SI2&#x27;, &#x27;I1&#x27;])
 df.head()</pre><h2>Questions</h2>
-<div class="q"><span class="marks">2 marks</span><h3>Question 1</h3><p>Load the diamonds dataset and report the number of rows and columns.</p></div>
+<div class="q"><span class="marks">2 marks</span><h3>Question 1</h3><p>After loading the data, report the number of rows and columns.</p></div>
 <div class="q"><span class="marks">3 marks</span><h3>Question 2</h3><p>Show the data type of every column. Which columns are categorical?</p></div>
 <div class="q"><span class="marks">3 marks</span><h3>Question 3</h3><p>How many missing values are there in the whole dataset? How many rows are exact duplicates?</p></div>
 <div class="q"><span class="marks">4 marks</span><h3>Question 4</h3><p>For <code>price</code> and <code>carat</code>, report the mean, median, minimum and maximum. Is <code>price</code> right-skewed? Justify using the mean and the median.</p></div>
@@ -21,4 +30,4 @@ df.head()</pre><h2>Questions</h2>
 <div class="q"><span class="marks">4 marks</span><h3>Question 8</h3><p>Draw a scatter plot of <code>carat</code> (x) against <code>price</code> (y). Use transparency or a random sample of 5,000 rows so the points are readable. Describe the relationship.</p></div>
 <div class="q"><span class="marks">4 marks</span><h3>Question 9</h3><p>Draw a box plot of <code>price</code> for each <code>color</code>. Which colour has the highest median price? (D is the best colour and J the worst.)</p></div>
 <div class="q"><span class="marks">6 marks</span><h3>Question 10</h3><p>Compute the correlation matrix of the numeric columns. Which variable is most strongly correlated with <code>price</code>, and what is the correlation? (Optional: show it as a heatmap.)</p></div>
-<p class="small" style="margin-top:14px">Dataset: <code>diamonds</code> from the seaborn library: 53,940 diamonds with price, carat, cut, colour, clarity and dimensions. End of question paper.</p></body></html>
+<p class="small" style="margin-top:14px">Dataset: <code>diamonds</code> on Kaggle (shivam2503/diamonds), the same data as seaborn's built-in copy: 53,940 diamonds with price, carat, cut, colour, clarity and dimensions. End of question paper.</p></body></html>
