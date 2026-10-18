@@ -1,0 +1,57 @@
+@page { size: A4; margin: 16mm 16mm 18mm; }
+:root { --ink: #1f3a5f; --text: #1c2430; --muted: #5c6878; --line: #d9dee5; --soft: #f3f5f8;
+        --ok: #1f7a45; --ok-bg: #e7f4ec; --bad: #b3261e; --bad-bg: #fdecea; --warn: #8a5300; --warn-bg: #fff4dd; }
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; color: var(--text); font: 10.5pt/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+h1 { font-size: 22pt; line-height: 1.15; margin: 0; color: var(--ink); letter-spacing: -0.01em; }
+h2 { font-size: 14pt; color: var(--ink); margin: 22px 0 8px; padding-top: 10px; border-top: 2px solid var(--ink); break-after: avoid; }
+h3 { font-size: 11pt; margin: 14px 0 6px; break-after: avoid; }
+p { margin: 0 0 8px; }
+.cover { display: flex; gap: 16px; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+.cover img { width: 54px; height: 54px; }
+.cover .sub { color: var(--muted); font-size: 11pt; margin-top: 4px; }
+.lead { font-size: 11.5pt; }
+.facts { width: 100%; border-collapse: collapse; margin: 10px 0 12px; }
+.facts td { padding: 6px 10px; border: 1px solid var(--line); vertical-align: top; }
+.facts td:first-child { width: 30%; background: var(--soft); font-weight: 600; }
+table.grid { width: 100%; border-collapse: collapse; margin: 6px 0 12px; font-size: 10pt; break-inside: auto; }
+table.grid th, table.grid td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
+table.grid th { background: var(--soft); font-weight: 600; }
+table.grid tr { break-inside: avoid; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.box { border-radius: 8px; padding: 10px 12px; margin: 10px 0; break-inside: avoid; }
+.box.ok { background: var(--ok-bg); border-left: 4px solid var(--ok); }
+.box.bad { background: var(--bad-bg); border-left: 4px solid var(--bad); }
+.box.tip { background: var(--soft); border-left: 4px solid var(--ink); }
+.box.warn { background: var(--warn-bg); border-left: 4px solid var(--warn); }
+.box h4 { margin: 0 0 4px; font-size: 10.5pt; }
+.box ul { margin: 0; padding-left: 18px; }
+ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 6px 0 10px; }
+ol.steps > li { counter-increment: s; position: relative; padding: 2px 0 8px 34px; break-inside: avoid; }
+ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--ink); color: #fff; font-weight: 700; font-size: 10pt; display: grid; place-items: center; }
+.see { color: var(--ok); font-weight: 600; }
+code, .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 9.5pt; background: var(--soft); padding: 1px 4px; border-radius: 3px; }
+pre { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 9.5pt; background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; white-space: pre-wrap; break-inside: avoid; }
+figure { margin: 8px 0 12px; break-inside: avoid; }
+figure img { display: block; max-width: 100%; border: 1px solid var(--line); border-radius: 6px; }
+figure.popup img { width: 66mm; }
+figure.row { display: flex; gap: 10px; align-items: flex-start; }
+figure.row > div { flex: 1; }
+figure.row img { width: 100%; }
+figcaption { color: var(--muted); font-size: 9pt; margin-top: 4px; }
+.side { display: grid; grid-template-columns: 68mm 1fr; gap: 14px; align-items: start; break-inside: avoid; }
+.badge { display: inline-block; font: 700 8.5pt/1 -apple-system, Helvetica, Arial, sans-serif; color: #fff; padding: 3px 5px; border-radius: 4px; }
+.badge.on { background: #2e7d32; } .badge.alert { background: #c62828; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 9pt; font-weight: 600; }
+.pill.high { background: var(--bad-bg); color: var(--bad); } .pill.med { background: var(--warn-bg); color: var(--warn); } .pill.low { background: #e8eef4; color: #3d5670; }
+.break { break-before: page; }
+.q { break-inside: avoid; margin: 0 0 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.q .marks { float: right; color: var(--muted); font-weight: 600; }
+.q h3 { margin: 0 0 4px; }
+.answer { background: var(--soft); border-radius: 6px; padding: 6px 10px; margin-top: 6px; }
+.small { font-size: 9pt; color: var(--muted); }
+thead { display: table-header-group; }
+table.grid { break-before: avoid; }
+h2 + p, h2 + table, h3 + p { break-before: avoid; }

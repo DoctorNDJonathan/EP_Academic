@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Exam Proctor Faculty Handbook</title>
+<link rel="stylesheet" href="manual.css">
+<style>
+  .toc { columns: 2; column-gap: 24px; padding-left: 18px; margin: 6px 0 4px; }
+  .toc li { break-inside: avoid; margin-bottom: 2px; }
+  .tpl { border: 1px dashed var(--line); border-radius: 8px; padding: 10px 12px; font-size: 10pt; background: #fff; break-inside: avoid; margin: 8px 0 12px; }
+  .tpl .h { font-weight: 600; color: var(--muted); font-size: 9pt; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .tpl p { margin: 0 0 6px; }
+  td code { white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <img src="img/icon.png" alt="">
+  <div>
+    <h1>Exam Proctor: Faculty Handbook</h1>
+    <div class="sub">How to run a class test with Exam Proctor · Version 1 · October 2026</div>
+  </div>
+</div>
+
+<p class="lead">Exam Proctor lets you decide which websites students may use during an online test, and shows you live, on one screen, any student who goes elsewhere. It uses no camera, microphone or screen recording. This handbook takes you from your first sign-in to reviewing the results.</p>
+
+<table class="facts">
+  <tr><td>Dashboard (for you)</td><td><code>https://exam-proctor-rhbo.onrender.com/dashboard</code>, in any browser</td></tr>
+  <tr><td>Extension (for students)</td><td><code>https://chromewebstore.google.com/detail/jheooojginplgillkdegkhlgblcmoimd</code>, free, Google Chrome only</td></tr>
+  <tr><td>Your login</td><td>Ask Nikhil D Jonathan (<code>nikhildj@xime.org</code>) for an account</td></tr>
+  <tr><td>Class size</td><td>Up to <b>40 students online at the same time</b>, across all tests on the system. Book your slot (section 2)</td></tr>
+  <tr><td>Hand to students</td><td><b>Exam Proctor Student Guide</b> (separate PDF)</td></tr>
+  <tr><td>Support</td><td><code>nikhildj@xime.org</code></td></tr>
+</table>
+
+<h3>Contents</h3>
+<ol class="toc">
+  <li>What it does, and what it doesn't</li>
+  <li>Before your first test</li>
+  <li>Planning a test</li>
+  <li>Creating the test in the dashboard</li>
+  <li>Preparing your students</li>
+  <li>On test day</li>
+  <li>After the test: reviewing flags</li>
+  <li>Limits and responsible use</li>
+  <li>Troubleshooting</li>
+  <li>Appendix A: allowed sites for common platforms</li>
+  <li>Appendix B: what each flag means</li>
+  <li>Appendix C: messages to send students</li>
+</ol>
+
+<h2>1. What it does, and what it doesn't</h2>
+<div class="two">
+  <div class="box ok"><h4>It does</h4><ul>
+    <li>Check each student's active tab against <b>your</b> list of allowed sites</li>
+    <li>Warn the student on screen the moment they leave it</li>
+    <li>Show you every student live, with problems first, and raise a <b>flag</b> within seconds</li>
+    <li>Notice switching to another app, other open tabs, a closed browser, a removed extension</li>
+    <li>Keep a timeline of every page visited, for review after the test</li>
+  </ul></div>
+  <div class="box bad"><h4>It doesn't</h4><ul>
+    <li>See phones, second computers, books or people in the room</li>
+    <li>See other browsers (only that the student left Chrome)</li>
+    <li>Record keystrokes, page content, the screen, camera or microphone</li>
+    <li>Block anything: it warns and records</li>
+    <li>Decide misconduct: every flag is a prompt for <b>your</b> judgement</li>
+  </ul></div>
+</div>
+<p>Students install a free Chrome extension once, then join each test with a <b>test code</b> (which you give them in advance), their <b>roll number</b>, and a <b>PIN</b> that you announce at the start. Monitoring runs only between the test's start and end times.</p>
+
+<h2>2. Before your first test</h2>
+<ol class="steps">
+  <li><b>Get an account.</b> Email <code>nikhildj@xime.org</code> with your name and preferred username. You will receive a temporary password.</li>
+  <li><b>Sign in</b> at the dashboard address above. The first visit of the day can take up to a minute while the server wakes up.</li>
+  <li><b>Change your password</b> straight away: <b>Admins → Change my password</b> (at least 10 characters).</li>
+  <li><b>Book your slot.</b> The service currently handles about 40 students online at once, <b>across all tests</b>. Tell Nikhil the date, time and class size before you schedule a test, so two large classes don't overlap.</li>
+</ol>
+<div class="side">
+  <figure><img src="img/dash-login.png" alt="Sign-in page"><figcaption>The sign-in page</figcaption></figure>
+  <div class="box warn"><h4>One shared workspace: please read</h4><ul>
+    <li>Every invigilator can see <b>every</b> test, its students and its flags. Treat other colleagues' student data as confidential.</li>
+    <li><b>Never edit or delete another colleague's test.</b> Deleting a test permanently deletes all its records.</li>
+    <li>Name tests <code>COURSE-SECTION-TEST</code>, for example <code>BA101-A-QUIZ2</code>, so everyone can tell them apart.</li>
+  </ul></div>
+</div>
+<figure><img src="img/dash-exams.png" alt="Exams list"><figcaption>The Exams list: every colleague's tests, with their status, how many students joined, and open high flags</figcaption></figure>
+
+<h2>3. Planning a test</h2>
+<h3>Is Exam Proctor right for this test?</h3>
+<p>It works best for timed online tests where students should use only a few specific resources: an online quiz (Google Forms, Microsoft Forms, the LMS), a notebook platform, a calculator or documentation. For a test taken entirely on paper, or one that needs many websites, it adds little.</p>
+
+<h3>Choosing the allowed sites</h3>
+<p>List every site a student genuinely needs, <b>including the sign-in page</b> your quiz platform sends them through. Anything not listed is flagged. Each line can be:</p>
+<table class="grid">
+  <thead><tr><th style="width:38%">You write</th><th>What it allows</th></tr></thead>
+  <tr><td><code>kaggle.com</code></td><td>The whole site and its subdomains (<code>www.kaggle.com</code>), every page</td></tr>
+  <tr><td><code>docs.google.com/forms/d/e/1FAIpQ…</code></td><td>Only that one Google Form. Google Docs, Sheets and other forms stay flagged</td></tr>
+  <tr><td><code>desmos.com/calculator</code></td><td>Only the Desmos calculator, not the rest of Desmos</td></tr>
+</table>
+<div class="box warn"><h4>Google Forms: remove <code>/viewform</code> from the end</h4>
+When you paste a form link, delete <code>/viewform</code> (and anything after it). After a student presses <b>Submit</b>, Google moves them to <code>…/formResponse</code>; with <code>/viewform</code> on your line, that page would be flagged for the whole class. Appendix A lists tested entries for common platforms.</div>
+
+<h3>The other settings</h3>
+<table class="grid">
+  <thead><tr><th style="width:28%">Setting</th><th>What to choose</th></tr></thead>
+  <tr><td>Test code</td><td><code>COURSE-SECTION-TEST</code>, letters, digits and dashes. Students type it, so keep it short</td></tr>
+  <tr><td>Start and end</td><td>The real test window. Students can join any time before the end; monitoring starts at the start time. You can extend the end time during the test</td></tr>
+  <tr><td>PIN</td><td>4 to 12 letters or digits; a new one for every test. Announce it only at the start</td></tr>
+  <tr><td>Grace period</td><td>3 seconds (default). Shorter visits, such as redirects and mis-clicks, are not flagged</td></tr>
+  <tr><td>Flag leaving Chrome</td><td><b>On</b> for most tests. Switch it <b>off</b> if students must use a desktop app (for example Excel), or every one of them will be flagged</td></tr>
+  <tr><td>Class roster</td><td>Recommended: paste roll numbers and names from a spreadsheet. Only listed students can join, and you see who hasn't joined</td></tr>
+</table>
+
+<h2>4. Creating the test in the dashboard</h2>
+<ol class="steps">
+  <li>Click <b>+ New exam</b> and fill in the name, code, start, end, PIN and grace period.</li>
+  <li>Type or paste the <b>Allowed sites</b>, one per line. Read the preview under the box: each line says whether it allows a whole site or only part of one.</li>
+  <li>Paste every link your test uses into <b>Test a link</b>. Each must say <b>Allowed</b>. Also try one that should be flagged.</li>
+  <li>Paste the <b>Class roster</b>: one student per line, roll number then name. You can copy two columns straight from Excel.</li>
+  <li>Click <b>Create exam</b>. The test appears in the list as <b>scheduled</b>.</li>
+</ol>
+<figure><img src="img/dash-new-exam.png" alt="New exam form"><figcaption>The top of the exam form</figcaption></figure>
+<figure><img src="img/dash-allowed-sites.png" alt="Allowed sites and preview"><figcaption>Allowed sites for a Google Forms quiz with Desmos. ◐ means only part of the site is allowed, which is what you want here. Don't press "Allow whole site instead" for the form, because that would allow all of Google Docs</figcaption></figure>
+<figure><img src="img/dash-test-link.png" alt="Test a link" style="width:150mm"><figcaption>Test a link: a Google Doc would be flagged, because only the quiz form is allowed. Leave the "Allow docs.google.com" button alone in this case</figcaption></figure>
+<figure><img src="img/dash-roster.png" alt="Class roster"><figcaption>The class roster, pasted from a spreadsheet</figcaption></figure>
+<div class="box tip"><h4>Run a practice test first</h4>Create a 10-minute test called, say, <code>BA101-A-PRACTICE</code> a few days before the real one, with the same allowed sites. Students install the extension and join it once. Installation problems then surface before they matter, and you can check your allowed-sites list with real students.</div>
+
+<h2>5. Preparing your students</h2>
+<ol class="steps">
+  <li><b>One week before:</b> email the class the <b>Student Guide</b> PDF, the test code and the date (template in Appendix C). Say clearly what is and isn't recorded.</li>
+  <li><b>Offer an alternative</b> to any student who doesn't consent, can't use Chrome, or has accessibility needs. Ask them to tell you before the test.</li>
+  <li><b>Two or three days before:</b> run the practice test, or at least ask everyone to install and pin the extension.</li>
+  <li><b>The day before:</b> send a reminder (Appendix C): Chrome, the extension, signed in to any accounts the test needs (for example Google), laptop charged.</li>
+</ol>
+<div class="side">
+  <figure class="popup"><img src="img/popup-join.png" alt="Join form"><figcaption>What students fill in to join</figcaption></figure>
+  <div>
+    <figure class="popup"><img src="img/popup-bad.png" alt="Student warning"><figcaption>What a student sees on a site that is not allowed. A pop-up notification also appears</figcaption></figure>
+  </div>
+</div>
+
+<h2>6. On test day</h2>
+<table class="grid">
+  <thead><tr><th style="width:18%">When</th><th>What to do</th></tr></thead>
+  <tr><td>15 minutes before</td><td>Sign in to the dashboard (this also wakes the server) and open your test's live view by clicking it in the list</td></tr>
+  <tr><td>5 minutes before</td><td>Announce the PIN. Watch <b>Joined X / Y</b>; use the <b>Not joined</b> filter to help anyone who is missing</td></tr>
+  <tr><td>Start</td><td>Release the quiz itself. Monitoring starts automatically at the start time</td></tr>
+  <tr><td>During</td><td>Watch for red tiles. You don't need to act on every flag during the test; you will review them afterwards</td></tr>
+  <tr><td>End</td><td>Monitoring stops automatically. Wait 15 minutes before reviewing: late uploads from students who lost Wi-Fi still arrive</td></tr>
+</table>
+<figure><img src="img/dash-live.png" alt="Live view"><figcaption>The live view: 27 of 30 joined, 3 on a site that is not allowed right now, 1 offline. Problems are sorted first</figcaption></figure>
+<table class="grid">
+  <thead><tr><th style="width:24%">On screen</th><th>Meaning</th></tr></thead>
+  <tr><td>Five numbers</td><td>Joined out of the roster · online now · on a site that is not allowed <b>right now</b> · offline 90 s or more · open high flags</td></tr>
+  <tr><td>Green tile</td><td>On an allowed site</td></tr>
+  <tr><td>Red tile</td><td>On a site that is not allowed, or in another app, and for how long</td></tr>
+  <tr><td>Amber tile</td><td>Offline: no contact for 90 seconds (Wi-Fi lost, Chrome closed, extension switched off)</td></tr>
+  <tr><td>Grey tile</td><td>Not joined yet</td></tr>
+  <tr><td>Red and amber numbers</td><td>The student's high and medium flags so far</td></tr>
+  <tr><td>Flags panel</td><td>Each new flag as it happens. A pop-up message also appears for each new high flag</td></tr>
+</table>
+<p>The screen updates itself every 3 seconds. Click any tile or flag to open that student's panel:</p>
+<figure><img src="img/dash-drawer.png" alt="Student panel"><figcaption>A student's panel: timeline (green allowed, red not), flags with Confirm, Dismiss and Allow, and every page visited</figcaption></figure>
+
+<h3>Situations and what to do</h3>
+<table class="grid">
+  <thead><tr><th style="width:36%">You see</th><th>What to do</th></tr></thead>
+  <tr><td>Many students flagged on the same site at once</td><td>The test probably needs that site, for example a sign-in page. Check the address; if it's genuinely needed, click <b>Allow &lt;site&gt;</b> on one of the flags. That adds it for everyone, turns tiles green and dismisses its flags. Students' extensions update within 30 seconds.</td></tr>
+  <tr><td>"Allow docs.google.com" offered for a Google Doc</td><td>Don't click it in a Forms quiz: it would allow all of Google Docs and Sheets. Treat the visit as a normal flag.</td></tr>
+  <tr><td>An amber tile</td><td>Usually Wi-Fi. If it was only Wi-Fi, the flag drops to <span class="pill low">low</span> on its own when the student reconnects.</td></tr>
+  <tr><td>A student can't join</td><td>Check the code, the PIN and that their roll number is on the roster. Edit the roster if needed; they can join any time before the end.</td></tr>
+  <tr><td>Students need more time</td><td><b>Edit exam &amp; allowed sites</b> → change <b>Ends</b> → <b>Save</b>. Extensions pick it up within 30 seconds.</td></tr>
+  <tr><td>"Cannot reach the exam server" for many students</td><td>Check the room's Wi-Fi first. If the dashboard is also down, note the time; extensions keep recording and send everything when it returns.</td></tr>
+</table>
+
+<h2>7. After the test: reviewing flags</h2>
+<ol class="steps">
+  <li>Wait 15 minutes after the end, then open the test's live view.</li>
+  <li>For each student with flags, open their panel and read the flag together with the <b>timeline</b> and <b>activity log</b>. Context matters more than a single flag.</li>
+  <li><b>Dismiss</b> flags with an innocent explanation and <b>Confirm</b> those that need follow-up. Add a short note either way; it records your name.</li>
+  <li>Click <b>Export flags (CSV)</b> and keep the file with your test records.</li>
+  <li>Follow the institute's academic integrity process for anything confirmed. A flag is never enough on its own: show the student the record and hear their explanation.</li>
+</ol>
+<table class="grid">
+  <thead><tr><th style="width:26%">Flag</th><th style="width:34%">Common innocent causes</th><th>What to check</th></tr></thead>
+  <tr><td><span class="pill high">high</span> Site not allowed</td><td>A missing sign-in page; a redirect; a mis-click that lasted over 3 seconds</td><td>The site, the page title and how long. Seconds on a sign-in page differ from minutes on an AI tool</td></tr>
+  <tr><td><span class="pill high">high</span> Left the browser</td><td>A system pop-up, a notification, a password manager</td><td>How long, and how often. Ten seconds once is different from repeated long absences</td></tr>
+  <tr><td><span class="pill high">high</span> Removed the extension</td><td>Rare by accident</td><td>Ask the student. Check for gaps around the same time</td></tr>
+  <tr><td><span class="pill med">medium</span> No contact</td><td>Wi-Fi drop, laptop battery, Chrome crash</td><td>How long. A real network drop is usually downgraded to low automatically</td></tr>
+  <tr><td><span class="pill med">medium</span> Different or shared browser</td><td>Reinstalled extension, changed laptop</td><td>Two students on one browser is worth a conversation</td></tr>
+  <tr><td><span class="pill low">low</span> Tab open</td><td>A tab left open from before the test</td><td>Whether they ever switched to it (activity log)</td></tr>
+</table>
+<p class="small">Records are deleted 90 days after each test, unless a case is under review. Ask Nikhil to keep a test's records longer if a case is open.</p>
+
+<h2>8. Limits and responsible use</h2>
+<ul>
+  <li><b>Design questions that reward understanding.</b> Monitoring deters casual misuse; it cannot see a phone or a friend in the room.</li>
+  <li><b>Tell students exactly what is recorded</b>, and never present the tool as more powerful than it is.</li>
+  <li><b>Keep the allowed list tight but complete.</b> Each extra site is extra freedom; each missing one is a false alarm for the whole class.</li>
+  <li><b>Platforms that host other people's work</b> (Kaggle, GitHub) are allowed as a whole site. Students could browse others' public notebooks there without a flag; check the activity logs.</li>
+  <li><b>Students can switch the extension off on their own laptops.</b> That is flagged, not prevented. On institution-managed laptops, IT can force-install it.</li>
+  <li><b>Handle the data with care:</b> it identifies students. Share CSVs only with people who need them.</li>
+</ul>
+
+<h2>9. Troubleshooting</h2>
+<table class="grid">
+  <thead><tr><th style="width:36%">Problem</th><th>Fix</th></tr></thead>
+  <tr><td>The dashboard is slow to open</td><td>The server sleeps when unused and wakes in about a minute. Always open it 15 minutes before a test.</td></tr>
+  <tr><td>"Wrong username or password"</td><td>Usernames are case-sensitive. After 8 wrong tries, sign-in from that network locks for 10 minutes; ask Nikhil to reset your password.</td></tr>
+  <tr><td>Student: "No exam with this code"</td><td>Check the spelling; codes are not case-sensitive but must match exactly otherwise.</td></tr>
+  <tr><td>Student: "Not on the list for this exam"</td><td>Their roll number is missing or mistyped in your roster. Edit the exam and fix it.</td></tr>
+  <tr><td>Student: "Incorrect exam PIN"</td><td>PINs are case-sensitive. Repeat it slowly, or write it on the board.</td></tr>
+  <tr><td>Student: "Cannot reach the exam server"</td><td>Their internet, or the server waking up. Wait a minute and retry.</td></tr>
+  <tr><td>Everyone flagged on the same page</td><td>A needed site is missing: use <b>Allow &lt;site&gt;</b> (section 6) and remember it for next time.</td></tr>
+  <tr><td>A student's laptop blocks extensions</td><td>Managed by another organisation's IT. Offer the alternative arrangement.</td></tr>
+</table>
+
+<h2>Appendix A: allowed sites for common platforms</h2>
+<table class="grid">
+  <thead><tr><th style="width:24%">Platform</th><th style="width:42%">Add these lines</th><th>Notes</th></tr></thead>
+  <tr><td>Google Forms quiz</td><td><code>docs.google.com/forms/d/e/&lt;FORM-ID&gt;</code><br><code>accounts.google.com</code></td><td>Copy the form link and delete <code>/viewform</code>. Other forms, Docs and Sheets stay flagged</td></tr>
+  <tr><td>Microsoft Forms</td><td><code>forms.office.com</code><br><code>forms.cloud.microsoft</code><br><code>login.microsoftonline.com</code></td><td>Microsoft uses both addresses for Forms. Links can't be narrowed to one form, so all Microsoft Forms are allowed</td></tr>
+  <tr><td>Learning platform (Moodle or similar)</td><td>Your LMS address, for example <code>lms.yourinstitute.edu</code></td><td>Students can also see course materials there; fine for open-book tests</td></tr>
+  <tr><td>Kaggle notebook</td><td><code>kaggle.com</code><br><code>accounts.google.com</code></td><td>Other people's public notebooks are on the same site (section 8)</td></tr>
+  <tr><td>Google Colab</td><td><code>colab.research.google.com</code><br><code>accounts.google.com</code></td><td>Covers every notebook. <code>colab.google</code> is a different site (Google's developer pages)</td></tr>
+  <tr><td>Desmos calculator</td><td><code>desmos.com/calculator</code></td><td>Only the calculator</td></tr>
+  <tr><td>Python documentation</td><td><code>pandas.pydata.org</code>, <code>seaborn.pydata.org</code>, <code>matplotlib.org</code>, <code>docs.python.org</code></td><td>Add only what the test allows</td></tr>
+</table>
+<p class="small">Avoid broad entries such as <code>google.com</code> (which includes Search and Gemini), <code>microsoft.com</code> (Bing and Copilot) or <code>office.com</code> (Copilot, Word, OneDrive). The dashboard warns you if you type one.</p>
+
+<h2>Appendix B: what each flag means</h2>
+<table class="grid">
+  <thead><tr><th style="width:34%">Flag (as shown)</th><th style="width:12%">Level</th><th>Raised when</th></tr></thead>
+  <tr><td>Visited a site that is not allowed</td><td><span class="pill high">high</span></td><td>The active tab stays on a site that is not on the list for longer than the grace period</td></tr>
+  <tr><td>Switched to another app or window</td><td><span class="pill high">high</span></td><td>Another app is in front for longer than the grace period (only if "Flag leaving Chrome" is on)</td></tr>
+  <tr><td>Removed the extension during the exam</td><td><span class="pill high">high</span></td><td>Chrome reports that the extension was uninstalled</td></tr>
+  <tr><td>Opened a browser page</td><td><span class="pill med">medium</span></td><td>Chrome settings, extensions page or a local file</td></tr>
+  <tr><td>Screen locked or computer asleep</td><td><span class="pill med">medium</span></td><td>The screen locks during the test</td></tr>
+  <tr><td>No contact from the extension</td><td><span class="pill med">medium</span> / <span class="pill low">low</span></td><td>Silent for 90 seconds; low when it was only a network drop</td></tr>
+  <tr><td>Rejoined from a different browser</td><td><span class="pill med">medium</span></td><td>The same roll number joins from another browser or after a reinstall</td></tr>
+  <tr><td>Same browser used for another roll number</td><td><span class="pill med">medium</span></td><td>Two roll numbers join from one browser</td></tr>
+  <tr><td>Has a tab open on a site that is not allowed</td><td><span class="pill low">low</span></td><td>A background tab is on a site that is not on the list</td></tr>
+</table>
+
+<h2>Appendix C: messages to send students</h2>
+<div class="tpl"><div class="h">One week before (attach the Student Guide)</div>
+<p><b>Subject:</b> [COURSE] [TEST NAME] on [DATE]: online monitoring with Exam Proctor</p>
+<p>Dear students, [TEST NAME] on [DATE] from [START] to [END] will be monitored with Exam Proctor, a Chrome extension that checks you stay on the allowed sites: [LIST THE SITES]. It records only the address and title of the pages you visit, and when you leave Chrome, between the start and end time. It does not record keystrokes, your screen, camera or microphone.</p>
+<p>Before [DATE]: install it from https://chromewebstore.google.com/detail/jheooojginplgillkdegkhlgblcmoimd and follow the attached Student Guide. The test code is <b>[CODE]</b>; the PIN will be announced at the start. If you cannot use Chrome or do not wish to be monitored, tell me by [DATE] so we can arrange an alternative.</p></div>
+<div class="tpl"><div class="h">The day before</div>
+<p>Reminder: [TEST NAME] tomorrow at [START]. Please bring a charged laptop with Google Chrome and the Exam Proctor extension pinned, and be signed in to [ACCOUNTS, e.g. your Google account] beforehand. Close tabs you don't need. Code: <b>[CODE]</b>.</p></div>
+
+</body>
+</html>

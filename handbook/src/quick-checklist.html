@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Exam Proctor: Quick Checklist</title>
+<link rel="stylesheet" href="manual.css">
+<style>
+  @page { margin: 12mm 14mm 14mm; }
+  body { font-size: 9.6pt; line-height: 1.38; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; }
+  .card { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; break-inside: avoid; }
+  .card h3 { margin: 0 0 4px; font-size: 10.5pt; color: var(--ink); }
+  .card .when { font-size: 8.5pt; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  ul.check { list-style: none; padding: 0; margin: 4px 0 0; }
+  ul.check li { padding-left: 18px; position: relative; margin-bottom: 3px; }
+  ul.check li::before { content: ""; position: absolute; left: 0; top: 3px; width: 10px; height: 10px; border: 1.3px solid var(--ink); border-radius: 2px; }
+  .cover { margin-bottom: 8px; padding-bottom: 8px; }
+  .cover img { width: 40px; height: 40px; }
+  h1 { font-size: 17pt; }
+  .strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0 0; font-size: 8.8pt; }
+  .strip div { border-radius: 6px; padding: 6px 8px; }
+</style>
+</head>
+<body>
+<div class="cover">
+  <img src="img/icon.png" alt="">
+  <div>
+    <h1>Exam Proctor: Quick Checklist</h1>
+    <div class="sub">One page for every class test · Dashboard: exam-proctor-rhbo.onrender.com/dashboard · Help: nikhildj@xime.org</div>
+  </div>
+</div>
+
+<div class="cols">
+  <div class="card"><div class="when">1 to 2 weeks before</div><h3>Plan</h3><ul class="check">
+    <li>Slot booked with Nikhil (max 40 students online at once, all tests together)</li>
+    <li>Allowed sites listed, including sign-in pages (Handbook, Appendix A)</li>
+    <li>Google Form link entered <b>without</b> <code>/viewform</code></li>
+    <li>"Flag leaving Chrome" off only if the test needs a desktop app</li>
+    <li>Test created: <code>COURSE-SECTION-TEST</code>, times, new PIN, roster pasted</li>
+    <li>Every test link checked in <b>Test a link</b>: all say Allowed</li>
+  </ul></div>
+  <div class="card"><div class="when">1 week before</div><h3>Prepare students</h3><ul class="check">
+    <li>Student Guide PDF emailed with the test code, date and allowed sites</li>
+    <li>Alternative offered to students who can't use Chrome or don't consent</li>
+    <li>Practice test created (10 minutes, same allowed sites)</li>
+    <li>Practice join run in class or online; problems fixed</li>
+  </ul></div>
+  <div class="card"><div class="when">Day before</div><h3>Remind</h3><ul class="check">
+    <li>Reminder sent: Chrome, extension pinned, signed in to needed accounts, laptop charged</li>
+    <li>PIN written down (not shared)</li>
+    <li>Invigilator colleagues have dashboard logins</li>
+  </ul></div>
+  <div class="card"><div class="when">Test day</div><h3>Run</h3><ul class="check">
+    <li>−15 min: dashboard open (wakes the server), live view open</li>
+    <li>−5 min: PIN announced; watch Joined X / Y; help "Not joined"</li>
+    <li>Start: release the quiz</li>
+    <li>During: red tiles first; many flags on one site = add it with "Allow"</li>
+    <li>Extra time needed: Edit exam → Ends → Save</li>
+  </ul></div>
+  <div class="card"><div class="when">After (+15 min)</div><h3>Review</h3><ul class="check">
+    <li>Each flagged student: read flag + timeline + activity log together</li>
+    <li>Dismiss innocent flags, confirm the rest, each with a note</li>
+    <li>Export flags (CSV) and file it with the test records</li>
+    <li>Anything confirmed: integrity process, student gets to respond</li>
+  </ul></div>
+  <div class="card"><div class="when">Never</div><h3>Don't</h3><ul class="check">
+    <li>Edit or delete another colleague's test</li>
+    <li>Allow broad sites (google.com, office.com) or "whole site" for a Google Form</li>
+    <li>Treat a flag as proof on its own</li>
+    <li>Share student data beyond those who need it</li>
+  </ul></div>
+</div>
+
+<div class="strip">
+  <div style="background:var(--ok-bg)"><b>Green tile:</b> on an allowed site</div>
+  <div style="background:var(--bad-bg)"><b>Red tile:</b> not allowed or another app, right now</div>
+  <div style="background:var(--warn-bg)"><b>Amber tile:</b> offline 90 s+ (often Wi-Fi)</div>
+  <div style="background:var(--soft)"><b>Grey tile:</b> not joined yet</div>
+</div>
+</body>
+</html>
