@@ -28,7 +28,7 @@
 <table class="facts">
   <tr><td>Dashboard (for you)</td><td><code>https://exam-proctor-rhbo.onrender.com/dashboard</code>, in any browser</td></tr>
   <tr><td>Extension (for students)</td><td><code>https://chromewebstore.google.com/detail/jheooojginplgillkdegkhlgblcmoimd</code>, free, Google Chrome only</td></tr>
-  <tr><td>Your login</td><td>Ask Nikhil D Jonathan (<code>nikhildj@xime.org</code>) for an account</td></tr>
+  <tr><td>Your login</td><td>An <b>invigilator</b> account from Nikhil D Jonathan (<code>nikhildj@xime.org</code>). You see only the tests you create, up to your exam limit</td></tr>
   <tr><td>Class size</td><td>Used with 60 students in one test. For larger classes, tell Nikhil in advance (section 2)</td></tr>
   <tr><td>Hand to students</td><td><b>Exam Proctor Student Guide</b> (separate PDF)</td></tr>
   <tr><td>Support</td><td><code>nikhildj@xime.org</code></td></tr>
@@ -71,20 +71,21 @@
 
 <h2>2. Before your first test</h2>
 <ol class="steps">
-  <li><b>Get an account.</b> Email <code>nikhildj@xime.org</code> with your name and preferred username. You will receive a temporary password.</li>
+  <li><b>Get an account.</b> Email <code>nikhildj@xime.org</code> with your name, preferred username and how many tests you plan to run this term. You will receive an invigilator account with a temporary password and an exam limit.</li>
   <li><b>Sign in</b> at the dashboard address above. The first visit of the day can take up to a minute while the server wakes up.</li>
-  <li><b>Change your password</b> straight away: <b>Admins → Change my password</b> (at least 10 characters).</li>
+  <li><b>Change your password</b> straight away: <b>My account → Change my password</b> (at least 10 characters).</li>
   <li><b>Tell Nikhil about your test</b> (date, time and class size) when you schedule it, so he can help on the day and plan around other large tests.</li>
 </ol>
 <div class="side">
   <figure><img src="img/dash-login.png" alt="Sign-in page"><figcaption>The sign-in page</figcaption></figure>
-  <div class="box warn"><h4>One shared workspace: please read</h4><ul>
-    <li>Every invigilator can see <b>every</b> test, its students and its flags. Treat other colleagues' student data as confidential.</li>
-    <li><b>Never edit or delete another colleague's test.</b> Deleting a test permanently deletes all its records.</li>
-    <li>Name tests <code>COURSE-SECTION-TEST</code>, for example <code>BA101-A-QUIZ2</code>, so everyone can tell them apart.</li>
+  <div class="box tip"><h4>Your account</h4><ul>
+    <li>You see and manage <b>only the tests you create</b>. Colleagues cannot see yours, and you cannot see theirs. Admins can see every test.</li>
+    <li>Your <b>exam limit</b> is the most tests you can have at once (shown on the Exams page, for example "2 of 5 used"). Delete old tests, after exporting their flags, or ask Nikhil to raise it.</li>
+    <li>Test codes are shared across the institute: name tests <code>COURSE-SECTION-TEST</code>, for example <code>BA101-A-QUIZ2</code>. If a code is taken, choose another.</li>
+    <li>A colleague helping you invigilate cannot open your test from their own account. They watch on your signed-in screen, or ask an admin.</li>
   </ul></div>
 </div>
-<figure><img src="img/dash-exams.png" alt="Exams list"><figcaption>The Exams list: every colleague's tests, with their status, how many students joined, and open high flags</figcaption></figure>
+<figure><img src="img/dash-exams.png" alt="Exams list"><figcaption>The Exams list: your own tests with their status, how many students joined and open high flags, and how much of your exam limit you have used</figcaption></figure>
 
 <h2>3. Planning a test</h2>
 <h3>Is Exam Proctor right for this test?</h3>
@@ -208,6 +209,8 @@ When you paste a form link, delete <code>/viewform</code> (and anything after it
   <thead><tr><th style="width:36%">Problem</th><th>Fix</th></tr></thead>
   <tr><td>The dashboard is slow to open</td><td>The server sleeps when unused and wakes in about a minute. Always open it 15 minutes before a test.</td></tr>
   <tr><td>"Wrong username or password"</td><td>Usernames are case-sensitive. After 8 wrong tries, sign-in from that network locks for 10 minutes; ask Nikhil to reset your password.</td></tr>
+  <tr><td>"You have reached your limit of N exams"</td><td>Export the flags of an old test and delete it, or ask Nikhil to raise your limit.</td></tr>
+  <tr><td>"An exam with this code already exists"</td><td>Codes are unique across the institute. Add your section or the term, for example <code>BA101-A-QUIZ2-OCT</code>.</td></tr>
   <tr><td>Student: "No exam with this code"</td><td>Check the spelling; codes are not case-sensitive but must match exactly otherwise.</td></tr>
   <tr><td>Student: "Not on the list for this exam"</td><td>Their roll number is missing or mistyped in your roster. Edit the exam and fix it.</td></tr>
   <tr><td>Student: "Incorrect exam PIN"</td><td>PINs are case-sensitive. Repeat it slowly, or write it on the board.</td></tr>

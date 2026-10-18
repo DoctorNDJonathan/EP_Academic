@@ -6,6 +6,7 @@ import base64, json, subprocess, sys, tempfile, time, urllib.request
 import websocket
 
 IMG, PW, POPUP, DASH = sys.argv[1:5]
+USER = sys.argv[5] if len(sys.argv) > 5 else "admin"
 chrome = subprocess.Popen(["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--headless=new", "--disable-gpu",
     "--hide-scrollbars", "--remote-debugging-port=9335", f"--user-data-dir={tempfile.mkdtemp()}", "--no-first-run", "about:blank"],
     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -72,7 +73,7 @@ for mode in ["join", "waiting", "ok", "bad", "done"]:
 size(1280, 800)
 go(f"{DASH}/dashboard", 1.5)
 shot("dash-login", {"x": 390, "y": 180, "width": 500, "height": 440})
-js(f"fetch('/api/auth/login', {{method:'POST', headers:{{'Content-Type':'application/json','X-Proctor':'1'}}, body: JSON.stringify({{username:'admin', password:{json.dumps(PW)}}})}}).then(r => r.status)")
+js(f"fetch('/api/auth/login', {{method:'POST', headers:{{'Content-Type':'application/json','X-Proctor':'1'}}, body: JSON.stringify({{username:{json.dumps(USER)}, password:{json.dumps(PW)}}})}}).then(r => r.status)")
 cdp("Page.reload"); time.sleep(2)
 go(f"{DASH}/dashboard#/exams", 2); shot("dash-exams", {"x": 0, "y": 0, "width": 1280, "height": 420})
 go(f"{DASH}/dashboard#/exams/new", 1.5)
@@ -93,5 +94,5 @@ go(f"{DASH}/dashboard#/exams/BA101-A-QUIZ2/live", 4); js("scrollTo(0, 0)"); time
 js("document.querySelector('[data-roll=\"25PGDM004\"]').click()"); time.sleep(2); shot("dash-drawer")
 js("document.querySelector('[data-action=close-drawer]').click()"); time.sleep(0.3)
 js("document.querySelector('[data-filter=not_joined]').click()"); time.sleep(0.5); shot("dash-filter", {"x": 0, "y": 0, "width": 1280, "height": 470})
-go(f"{DASH}/dashboard#/admins", 2); shot("dash-admins", {"x": 0, "y": 0, "width": 1280, "height": 620})
+go(f"{DASH}/dashboard#/account", 2); shot("dash-account", {"x": 0, "y": 0, "width": 1280, "height": 430})
 ws.close(); chrome.terminate()

@@ -14,7 +14,9 @@ import app
 import db
 
 S, PW = sys.argv[1], sys.argv[2]
-op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+admin_op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+inv_op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+op = admin_op
 
 
 def req(path, body=None, tok=None):
@@ -27,6 +29,8 @@ def req(path, body=None, tok=None):
 
 
 req("/api/auth/login", {"username": "admin", "password": PW})
+op = inv_op                       # the class test belongs to invigilator priya.s, as in real use
+req("/api/auth/login", {"username": "priya.s", "password": PW})
 now = time.time()
 FORM = "docs.google.com/forms/d/e/1FAIpQLSc7BA101Quiz2"
 names = ["Aarav Shah", "Diya Menon", "Kabir Rao", "Ananya Iyer", "Rohan Das", "Meher Kapoor", "Ishaan Nair", "Saanvi Reddy",
@@ -38,7 +42,9 @@ start = now - 10 * 60
 req("/api/admin/exams", {"code": "BA101-A-QUIZ2", "name": "BA101 Section A: Quiz 2", "start_ts": start, "end_ts": start + 30 * 60,
     "pin": "730516", "allowed_sites": [FORM, "accounts.google.com", "desmos.com/calculator"], "grace_s": 3, "flag_outside": True,
     "roster": "\n".join(f"{r},{n}" for r, n in roster)})
-# Two other colleagues' exams, to show a shared exam list
+req("/api/admin/exams", {"code": "BA101-A-QUIZ1", "name": "BA101 Section A: Quiz 1", "start_ts": now - 86400 * 7, "end_ts": now - 86400 * 7 + 1800,
+    "pin": "556677", "allowed_sites": [FORM, "accounts.google.com"], "grace_s": 3, "flag_outside": True, "roster": ""})
+op = admin_op                     # other colleagues' exams: hidden from priya.s
 req("/api/admin/exams", {"code": "FIN204-B-MIDTERM", "name": "FIN204 Section B: Midterm", "start_ts": now + 86400 * 2, "end_ts": now + 86400 * 2 + 5400,
     "pin": "112233", "allowed_sites": ["lms.example.edu"], "grace_s": 3, "flag_outside": True, "roster": ""})
 req("/api/admin/exams", {"code": "OPS110-QUIZ1", "name": "OPS110: Quiz 1", "start_ts": now - 86400 * 3, "end_ts": now - 86400 * 3 + 1800,
@@ -50,6 +56,7 @@ gdoc = ("tab", "docs.google.com", "/document/d/1xNotesBA101/edit", "BA101 notes 
 chat = ("tab", "chatgpt.com", "/", "ChatGPT")
 seg = lambda k, d, p, t, a, b: {"kind": k, "domain": d, "path": p, "title": t, "start_ts": a, "end_ts": b}
 cur = lambda k, d, p, t, a: {"kind": k, "domain": d, "path": p, "title": t, "start_ts": a}
+op = inv_op
 state = {}
 for i, (roll, _) in enumerate(roster[:27]):                # 3 students never join
     tok = req("/api/join", {"exam_code": "BA101-A-QUIZ2", "roll_no": roll, "pin": "730516", "device_id": f"demo-dev-{i:04d}", "consent": True})["token"]
