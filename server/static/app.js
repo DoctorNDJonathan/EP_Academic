@@ -73,7 +73,8 @@ async function boot() {
   try { me = await api("GET", "/api/auth/me"); } catch { return; }
   $("#login").hidden = true;
   $("#shell").hidden = false;
-  $("#whoami").textContent = me.username;
+  $("#whoami").textContent = `${me.username} · ${me.role === "admin" ? "Admin" : "Invigilator"}`;
+  $("#navUsers").hidden = me.role !== "admin";
   route();
 }
 
@@ -87,7 +88,8 @@ function route() {
   document.title = "Exam Proctor";
   const h = location.hash.replace(/^#\/?/, "").split("/");
   document.querySelectorAll("[data-nav]").forEach((a) => a.classList.toggle("active", a.dataset.nav === (h[0] || "exams")));
-  if (h[0] === "admins") return viewAdmins();
+  if (h[0] === "users" && me.role === "admin") return viewUsers();
+  if (h[0] === "account" || h[0] === "users") return viewAccount();
   if (h[0] === "exams" && h[1] === "new") return viewExamForm(null);
   if (h[0] === "exams" && h[1] && h[2] === "edit") return viewExamForm(decodeURIComponent(h[1]));
   if (h[0] === "exams" && h[1] && h[2] === "live") return viewLive(decodeURIComponent(h[1]));
@@ -99,19 +101,27 @@ function stopPolling() { clearInterval(pollTimer); pollTimer = null; }
 // ---------------------------------------------------------------- exams list
 async function viewExams() {
   const v = $("#view");
-  v.innerHTML = `<div class="page-head"><h1>Exams</h1><div class="spacer"></div>
-    <a class="btn primary" href="#/exams/new">+ New exam</a></div><div class="card" id="examList"><div class="empty">Loading…</div></div>`;
+  v.innerHTML = `<div class="page-head"><h1>Exams</h1><span class="muted" id="quotaLine"></span><div class="spacer"></div>
+    <span id="newExamSlot"></span></div><div class="card" id="examList"><div class="empty">Loading…</div></div>`;
   const load = async () => {
+    me = await api("GET", "/api/auth/me").catch(() => me);
+    const atLimit = me.role !== "admin" && me.exam_quota !== null && me.exams_used >= me.exam_quota;
+    if ($("#quotaLine")) $("#quotaLine").textContent = me.role === "admin" ? "All exams" : `Your exams · ${limitText(me)}`;
+    if ($("#newExamSlot")) $("#newExamSlot").innerHTML = atLimit
+      ? `<span class="muted">Exam limit reached: delete an old exam, or ask an admin to raise your limit.</span>`
+      : `<a class="btn primary" href="#/exams/new">+ New exam</a>`;
     const exams = await api("GET", "/api/admin/exams");
     const box = $("#examList");
     if (!box) return;
     if (!exams.length) { box.innerHTML = `<div class="empty">No exams yet. Create one to get an exam code and PIN for students.</div>`; return; }
+    const owner = me.role === "admin";
     box.innerHTML = `<table><thead><tr><th>Exam</th><th class="hide-sm">When</th><th>Status</th>
-      <th class="num">Joined</th><th class="num hide-sm">Online</th><th class="num">High flags</th><th></th></tr></thead><tbody>
+      ${owner ? '<th class="hide-sm">Created by</th>' : ""}<th class="num">Joined</th><th class="num hide-sm">Online</th><th class="num">High flags</th><th></th></tr></thead><tbody>
       ${exams.map((e) => `<tr class="click" data-href="#/exams/${encodeURIComponent(e.code)}/live">
         <td><strong>${esc(e.name)}</strong><div class="muted mono">${esc(e.code)}</div></td>
         <td class="hide-sm">${esc(fmtWhen(e.start_ts))} – ${esc(fmtHM(e.end_ts))}</td>
         <td><span class="pill ${esc(e.state)}">${esc(e.state)}</span></td>
+        ${owner ? `<td class="hide-sm muted">${esc(e.created_by || "—")}</td>` : ""}
         <td class="num">${e.joined}${e.roster_size ? ` / ${e.roster_size}` : ""}</td>
         <td class="num hide-sm">${e.state === "running" ? e.online : "–"}</td>
         <td class="num">${e.high_flags ? `<span class="cnt HIGH">${e.high_flags}</span>` : "0"}</td>
@@ -495,47 +505,84 @@ document.addEventListener("click", async (e) => {
 });
 
 // ---------------------------------------------------------------- admins
-async function viewAdmins() {
+const ROLE_LABEL = { admin: "Admin", invigilator: "Invigilator" };
+const limitText = (u) => u.role === "admin" || u.exam_quota === null ? "No limit" : `${u.exams_used} of ${u.exam_quota} used`;
+
+// Users: admins only. Invigilators can only set up and run their own exams, up to their exam limit.
+async function viewUsers() {
   const v = $("#view");
-  v.innerHTML = `<div class="page-head"><h1>Admins</h1></div>
+  v.innerHTML = `<div class="page-head"><h1>Users</h1><div class="spacer"></div><span class="muted">Admins manage users and see every exam. Invigilators see only the exams they create, up to their limit.</span></div>
     <div class="live">
-      <div class="card" id="adminList"><div class="empty">Loading…</div></div>
-      <div>
-        <form class="card form" id="addAdmin" autocomplete="off">
-          <h2 class="full">Add an invigilator / admin</h2>
-          <label class="full">Username<input name="username" required minlength="3" maxlength="64"></label>
-          <label class="full">Temporary password<input name="password" type="password" required minlength="10" autocomplete="new-password">
-            <div class="hint">At least 10 characters. Ask them to change it after signing in.</div></label>
-          <div class="form-actions full"><button class="btn primary">Add</button></div>
-          <p class="error full" id="addErr"></p>
-        </form>
-        <br>
-        <form class="card form" id="pwForm">
-          <h2 class="full">Change my password</h2>
-          <label class="full">Current password<input name="old" type="password" required autocomplete="current-password"></label>
-          <label class="full">New password<input name="new" type="password" required minlength="10" autocomplete="new-password"></label>
-          <div class="form-actions full"><button class="btn primary">Change password</button></div>
-          <p class="error full" id="pwErr"></p>
-        </form>
-      </div>
+      <div class="card" id="userList"><div class="empty">Loading…</div></div>
+      <form class="card form" id="addUser" autocomplete="off">
+        <h2 class="full">Add a user</h2>
+        <label class="full">Username<input name="username" required minlength="3" maxlength="64"></label>
+        <label class="full">Temporary password<input name="password" type="password" required minlength="10" autocomplete="new-password">
+          <div class="hint">At least 10 characters. Ask them to change it under My account after signing in.</div></label>
+        <label>Role<select name="role" id="newRole"><option value="invigilator" selected>Invigilator</option><option value="admin">Admin</option></select></label>
+        <label>Exam limit<input name="exam_quota" id="newQuota" type="number" min="0" max="1000" value="5" required>
+          <div class="hint">Most exams they can have at once.</div></label>
+        <div class="form-actions full"><button class="btn primary">Add user</button></div>
+        <p class="error full" id="addErr"></p>
+      </form>
     </div>`;
+  const syncQuota = (sel, input) => { input.disabled = sel.value === "admin"; };
+  $("#newRole").addEventListener("change", () => syncQuota($("#newRole"), $("#newQuota")));
   const load = async () => {
     const users = await api("GET", "/api/admin/users");
-    $("#adminList").innerHTML = `<table><thead><tr><th>Username</th><th>Added</th><th></th></tr></thead><tbody>
-      ${users.map((u) => `<tr><td><strong>${esc(u.username)}</strong>${u.username === me.username ? ' <span class="muted">(you)</span>' : ""}</td>
-        <td class="muted">${esc(new Date(u.created_ts * 1000).toLocaleDateString())}</td>
-        <td>${u.username !== me.username ? `<button class="btn sm danger" data-action="del-user" data-user="${esc(u.username)}">Remove</button>` : ""}</td></tr>`).join("")}
+    $("#userList").innerHTML = `<table><thead><tr><th>User</th><th>Role</th><th>Exam limit</th><th class="num">Exams</th><th></th></tr></thead><tbody>
+      ${users.map((u) => `<tr data-user="${esc(u.username)}">
+        <td><strong>${esc(u.username)}</strong>${u.username === me.username ? ' <span class="muted">(you)</span>' : ""}
+          <div class="muted">${esc(new Date(u.created_ts * 1000).toLocaleDateString())}</div></td>
+        <td><select data-field="role" aria-label="Role of ${esc(u.username)}" ${u.username === me.username ? "disabled" : ""}>
+          ${Object.entries(ROLE_LABEL).map(([k, l]) => `<option value="${k}" ${u.role === k ? "selected" : ""}>${l}</option>`).join("")}</select></td>
+        <td><input data-field="quota" type="number" min="0" max="1000" class="quota-input" aria-label="Exam limit of ${esc(u.username)}"
+          value="${u.exam_quota ?? ""}" placeholder="—" ${u.role === "admin" ? "disabled" : ""}></td>
+        <td class="num">${u.exams_used}</td>
+        <td><div class="form-actions">
+          <button class="btn sm" data-action="save-user">Save</button>
+          <button class="btn sm ghost" data-action="reset-pw">Reset password</button>
+          ${u.username !== me.username ? `<button class="btn sm danger" data-action="del-user" data-user="${esc(u.username)}">Remove</button>` : ""}
+        </div></td></tr>`).join("")}
       </tbody></table>`;
+    document.querySelectorAll("#userList tr[data-user]").forEach((tr) => {
+      const sel = tr.querySelector("[data-field=role]"), q = tr.querySelector("[data-field=quota]");
+      sel.addEventListener("change", () => { syncQuota(sel, q); if (sel.value === "invigilator" && !q.value) q.value = 5; });
+    });
   };
+  viewUsers.reload = load;
   load().catch((e) => toast(e.message));
-  $("#addAdmin").addEventListener("submit", async (e) => {
+  $("#addUser").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const f = new FormData(e.target);
+    const f = new FormData(e.target), role = f.get("role");
     try {
-      await api("POST", "/api/admin/users", { username: f.get("username").trim(), password: f.get("password") });
-      e.target.reset(); $("#addErr").textContent = ""; toast("Admin added."); load();
+      await api("POST", "/api/admin/users", { username: f.get("username").trim(), password: f.get("password"), role,
+        exam_quota: role === "admin" ? null : Number(f.get("exam_quota")) });
+      e.target.reset(); syncQuota($("#newRole"), $("#newQuota")); $("#addErr").textContent = "";
+      toast(`${ROLE_LABEL[role]} added.`); load();
     } catch (err) { $("#addErr").textContent = err.message; }
   });
+}
+
+async function viewAccount() {
+  me = await api("GET", "/api/auth/me").catch(() => me);
+  const v = $("#view");
+  v.innerHTML = `<div class="page-head"><h1>My account</h1></div>
+    <div class="live">
+      <div class="card form">
+        <h2 class="full">${esc(me.username)}</h2>
+        <p class="full">Role: <strong>${esc(ROLE_LABEL[me.role] || me.role)}</strong></p>
+        <p class="full">${me.role === "admin" ? "You can manage users and see every exam."
+          : `You can create and run your own exams. Exam limit: <strong>${me.exam_quota === null ? "none" : `${me.exams_used} of ${me.exam_quota} used`}</strong>. Ask an admin if you need more.`}</p>
+      </div>
+      <form class="card form" id="pwForm">
+        <h2 class="full">Change my password</h2>
+        <label class="full">Current password<input name="old" type="password" required autocomplete="current-password"></label>
+        <label class="full">New password<input name="new" type="password" required minlength="10" autocomplete="new-password"></label>
+        <div class="form-actions full"><button class="btn primary">Change password</button></div>
+        <p class="error full" id="pwErr"></p>
+      </form>
+    </div>`;
   $("#pwForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = new FormData(e.target);
@@ -554,8 +601,20 @@ document.addEventListener("click", async (e) => {
   try {
     if (act === "logout") { await api("POST", "/api/auth/logout"); showLogin(); }
     else if (act === "close-drawer") closeDrawer();
-    else if (act === "del-user" && confirm(`Remove admin ${a.dataset.user}?`)) {
-      await api("DELETE", `/api/admin/users/${encodeURIComponent(a.dataset.user)}`); route();
+    else if (act === "del-user" && confirm(`Remove ${a.dataset.user}? They can no longer sign in. Their exams stay, and admins can still manage them.`)) {
+      await api("DELETE", `/api/admin/users/${encodeURIComponent(a.dataset.user)}`); toast("User removed."); viewUsers.reload();
+    } else if (act === "save-user" || act === "reset-pw") {
+      const tr = a.closest("tr[data-user]"), username = tr.dataset.user;
+      const role = tr.querySelector("[data-field=role]").value, q = tr.querySelector("[data-field=quota]").value;
+      let password = "";
+      if (act === "reset-pw") {
+        password = prompt(`New temporary password for ${username} (at least 10 characters):`, "");
+        if (!password) return;
+      }
+      await api("PUT", `/api/admin/users/${encodeURIComponent(username)}`,
+        { role, exam_quota: role === "admin" || q === "" ? null : Number(q), password });
+      toast(act === "reset-pw" ? `Password reset for ${username}. They have been signed out.` : `${username} saved.`);
+      viewUsers.reload();
     } else if (act === "delete-exam") {
       const code = a.dataset.code;
       if (prompt(`This permanently deletes exam ${code} and all its activity and flags.\nType the exam code to confirm:`) !== code) return;

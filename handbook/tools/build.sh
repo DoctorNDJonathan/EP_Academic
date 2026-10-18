@@ -12,7 +12,7 @@ if [[ "$1" != "--pdf-only" ]]; then
   PW=$($PY -c "import secrets; print(secrets.token_urlsafe(16))")
   (cd $ROOT/server && $PY -c "
 import db; db.init()
-with db.conn() as c: c.execute('INSERT INTO admins VALUES (?,?,?)', ('admin', db.hash_password('$PW'), db.now()))")
+with db.conn() as c: c.execute('INSERT INTO admins(username, pw_hash, created_ts, role) VALUES (?,?,?,?)', ('admin', db.hash_password('$PW'), db.now(), 'admin'))")
   (cd $ROOT/server && nohup $PY -m uvicorn app:app --port 8013 > $TMP/server.log 2>&1 &)
   for i in {1..60}; do curl -s -m 2 localhost:8013/api/health >/dev/null && break; sleep 0.5; done
   (cd $ROOT/server && nohup $PY $HB/tools/stage_demo.py http://localhost:8013 "$PW" > $TMP/stage.log 2>&1 &)

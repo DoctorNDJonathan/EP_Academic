@@ -17,6 +17,7 @@ import atexit
 import hashlib
 import hmac
 import os
+import re
 import secrets
 import sqlite3
 import time
@@ -34,10 +35,12 @@ TABLES = ("admins", "sessions", "exams", "participants", "presence", "events", "
 
 # Timestamps are Unix seconds in DOUBLE PRECISION (Postgres REAL is only 4 bytes: too coarse).
 SCHEMA = f"""
-CREATE TABLE IF NOT EXISTS admins(
+CREATE TABLE IF NOT EXISTS admins(               -- every dashboard user, admins and invigilators
     username TEXT PRIMARY KEY,
     pw_hash TEXT NOT NULL,
-    created_ts DOUBLE PRECISION NOT NULL
+    created_ts DOUBLE PRECISION NOT NULL,
+    role TEXT NOT NULL DEFAULT 'admin',            -- admin | invigilator
+    exam_quota INTEGER                             -- invigilators: most exams they may have (NULL = no limit)
 );
 CREATE TABLE IF NOT EXISTS sessions(
     token_hash TEXT PRIMARY KEY,
@@ -115,7 +118,15 @@ CREATE TABLE IF NOT EXISTS flags(
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_flags ON flags(exam_code, roll_no, rule, domain, seg_start);
 CREATE INDEX IF NOT EXISTS ix_flags_upd ON flags(exam_code, updated_ts);
+CREATE INDEX IF NOT EXISTS ix_exams_owner ON exams(created_by);
 """
+
+# Columns added after the first release. init() adds any that an existing database lacks,
+# because CREATE TABLE IF NOT EXISTS never changes a table that is already there.
+ADDED_COLUMNS = [
+    ("admins", "role", "TEXT NOT NULL DEFAULT 'admin'"),   # existing users stay admins: nobody is locked out
+    ("admins", "exam_quota", "INTEGER"),
+]
 
 
 # ---------------------------------------------------------------- Postgres
@@ -175,14 +186,23 @@ def _open_pool():
 def init():
     if PG:
         with _open_pool().connection() as c:
-            for stmt in filter(str.strip, SCHEMA.split(";")):
-                c.execute(stmt)
+            # Statements are sent one by one; drop "--" comments first so a ";" inside one can't split a statement.
+            for stmt in filter(str.strip, re.sub(r"--[^\n]*", "", SCHEMA).split(";")):
+                if "ix_exams_owner" not in stmt:          # needs the exams table; created below
+                    c.execute(stmt)
+            for table, col, ddl in ADDED_COLUMNS:
+                c.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {ddl}")
+            c.execute("CREATE INDEX IF NOT EXISTS ix_exams_owner ON exams(created_by)")
             for t in TABLES:
                 c.execute(f"ALTER TABLE {t} ENABLE ROW LEVEL SECURITY")
     else:
         c = sqlite3.connect(SQLITE_PATH)
         c.execute("PRAGMA journal_mode=WAL")
         c.executescript(SCHEMA)
+        for table, col, ddl in ADDED_COLUMNS:
+            if col not in [r[1] for r in c.execute(f"PRAGMA table_info({table})")]:
+                c.execute(f"ALTER TABLE {table} ADD COLUMN {col} {ddl}")
+        c.commit()
         c.close()
 
 

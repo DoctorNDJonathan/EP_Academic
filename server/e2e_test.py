@@ -27,7 +27,8 @@ op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiej
 ok = 0
 
 
-def req(method, path, body=None, tok=None, admin=True, raw=False):
+def req(method, path, body=None, tok=None, admin=True, raw=False, opener=None):
+    opener = opener or op
     h = {"Content-Type": "application/json"}
     if admin:
         h["X-Proctor"] = "1"
@@ -35,7 +36,7 @@ def req(method, path, body=None, tok=None, admin=True, raw=False):
         h["Authorization"] = "Bearer " + tok
     r = urllib.request.Request(S + path, json.dumps(body).encode() if body is not None else None, h, method=method)
     try:
-        with op.open(r) as resp:
+        with opener.open(r) as resp:
             d = resp.read()
             return resp.status, (d.decode() if raw else json.loads(d))
     except urllib.error.HTTPError as e:
@@ -163,6 +164,58 @@ s, r = req("POST", "/api/ingest", {"current": {"kind": "tab", "domain": "colab.r
 check("any notebook now allowed", r["allowed_now"] and "colab.research.google.com" in r["allowed_sites"])
 check("allow invalid", req("POST", "/api/admin/exams/COLAB/allow", {"site": "not a site"})[0] == 400)
 req("DELETE", "/api/admin/exams/COLAB")
+
+
+# ---------------------------------------------------------------- roles: admins manage users, invigilators only their own exams
+inv = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+I = lambda method, path, body=None, raw=False: req(method, path, body, raw=raw, opener=inv)
+for code in ("ADMINX", "INV1", "INV2"):
+    req("DELETE", f"/api/admin/exams/{code}")
+req("DELETE", "/api/admin/users/inv_t1")
+check("me: admin role", req("GET", "/api/auth/me")[1]["role"] == "admin")
+check("admin adds invigilator, limit 1", req("POST", "/api/admin/users", {"username": "inv_t1", "password": "invigilator-pass-1", "role": "invigilator", "exam_quota": 1})[0] == 200)
+exam = lambda code: {"code": code, "name": code, "start_ts": t0, "end_ts": t0 + 3600, "pin": "4821", "allowed_sites": ["exam.example.edu"], "grace_s": 0, "flag_outside": True, "roster": ""}
+check("admin creates own exam", req("POST", "/api/admin/exams", exam("ADMINX"))[0] == 200)
+check("invigilator signs in", I("POST", "/api/auth/login", {"username": "inv_t1", "password": "invigilator-pass-1"})[0] == 200)
+s_, m = I("GET", "/api/auth/me")
+check("me: invigilator, 0 of 1 used", m["role"] == "invigilator" and m["exam_quota"] == 1 and m["exams_used"] == 0)
+check("invigilator cannot list users", I("GET", "/api/admin/users")[0] == 403)
+check("invigilator cannot add users", I("POST", "/api/admin/users", {"username": "sneaky", "password": "longenough123", "role": "admin"})[0] == 403)
+check("invigilator cannot change users", I("PUT", "/api/admin/users/inv_t1", {"role": "admin"})[0] == 403)
+check("invigilator cannot remove users", I("DELETE", f"/api/admin/users/{USER}")[0] == 403)
+check("invigilator creates an exam", I("POST", "/api/admin/exams", exam("INV1"))[0] == 200)
+s_, e = I("POST", "/api/admin/exams", exam("INV2"))
+check("limit reached: second exam refused", s_ == 403 and "limit of 1" in e["detail"])
+check("invigilator sees only own exams", [x["code"] for x in I("GET", "/api/admin/exams")[1]] == ["INV1"])
+for method, path in [("GET", "/api/admin/exams/ADMINX"), ("GET", "/api/admin/exams/ADMINX/live"), ("GET", "/api/admin/exams/ADMINX/students/X1"),
+                     ("GET", "/api/admin/exams/ADMINX/export.csv"), ("DELETE", "/api/admin/exams/ADMINX")]:
+    check(f"invigilator blocked: {method} {path.rsplit('/', 1)[-1]}", I(method, path)[0] == 404)
+check("invigilator blocked: edit other's exam", I("PUT", "/api/admin/exams/ADMINX", exam("ADMINX"))[0] == 404)
+check("invigilator blocked: allow site on other's exam", I("POST", "/api/admin/exams/ADMINX/allow", {"site": "x.com"})[0] == 404)
+s_, j = req("POST", "/api/join", {"exam_code": "ADMINX", "roll_no": "X1", "pin": "4821", "device_id": "dev-role-0001", "consent": True}, admin=False)
+req("POST", "/api/ingest", {"current": {"kind": "tab", "domain": "chatgpt.com", "path": "/", "title": "c", "start_ts": time.time() - 5}}, tok=j["token"], admin=False)
+fid = req("GET", "/api/admin/exams/ADMINX/live")[1]["flags"][0]["id"]
+check("invigilator blocked: review other's flag", I("POST", f"/api/admin/flags/{fid}", {"status": "dismissed"})[0] == 404)
+check("invigilator can run own exam", I("GET", "/api/admin/exams/INV1/live")[0] == 200)
+owners = {x["code"]: x["created_by"] for x in req("GET", "/api/admin/exams")[1]}
+check("admin sees every exam with its owner", owners.get("INV1") == "inv_t1" and owners.get("ADMINX") == USER)
+check("admin raises the limit", req("PUT", "/api/admin/users/inv_t1", {"role": "invigilator", "exam_quota": 2})[0] == 200)
+check("raised limit applies at once", I("POST", "/api/admin/exams", exam("INV2"))[0] == 200)
+users = {u["username"]: u for u in req("GET", "/api/admin/users")[1]}
+check("users list shows role, limit, exams", users["inv_t1"]["role"] == "invigilator" and users["inv_t1"]["exam_quota"] == 2 and users["inv_t1"]["exams_used"] == 2)
+check("admin cannot demote self", req("PUT", f"/api/admin/users/{USER}", {"role": "invigilator", "exam_quota": 5})[0] == 400)
+check("admin cannot remove self", req("DELETE", f"/api/admin/users/{USER}")[0] == 400)
+check("promote to admin", req("PUT", "/api/admin/users/inv_t1", {"role": "admin"})[0] == 200)
+check("promotion applies at once", "ADMINX" in [x["code"] for x in I("GET", "/api/admin/exams")[1]] and I("GET", "/api/admin/users")[0] == 200)
+req("PUT", "/api/admin/users/inv_t1", {"role": "invigilator", "exam_quota": 2})
+check("admin resets a password", req("PUT", "/api/admin/users/inv_t1", {"role": "invigilator", "exam_quota": 2, "password": "brand-new-pass-9"})[0] == 200)
+check("reset signs the user out", I("GET", "/api/auth/me")[0] == 401)
+check("new password works", I("POST", "/api/auth/login", {"username": "inv_t1", "password": "brand-new-pass-9"})[0] == 200)
+check("remove user", req("DELETE", "/api/admin/users/inv_t1")[0] == 200)
+check("removed user is signed out", I("GET", "/api/auth/me")[0] == 401)
+check("removed user's exams stay for admins", "INV1" in [x["code"] for x in req("GET", "/api/admin/exams")[1]])
+for code in ("ADMINX", "INV1", "INV2"):
+    req("DELETE", f"/api/admin/exams/{code}")
 
 check("logout", req("POST", "/api/auth/logout")[0] == 200)
 check("after logout", req("GET", "/api/admin/exams")[0] == 401)

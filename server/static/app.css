@@ -186,3 +186,8 @@ tbody tr.click:hover { background: var(--surface-2); }
 .test-result { font-size: 13px; min-height: 1.2em; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
 .test-result .ok { color: var(--ok); font-weight: 700; }
 .test-result .bad { color: var(--bad); font-weight: 700; }
+
+/* users page */
+.quota-input { width: 6em; }
+#userList select { width: auto; }
+#userList td { vertical-align: middle; }

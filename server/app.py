@@ -22,6 +22,7 @@ import re
 import secrets
 import time
 from collections import defaultdict, deque
+from typing import NamedTuple
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -390,19 +391,45 @@ class LoginIn(BaseModel):
     password: str = Field(max_length=200)
 
 
-def admin(request: Request) -> str:
+class Account(NamedTuple):
+    username: str
+    role: str                 # "admin": everything · "invigilator": only exams they created
+    exam_quota: int | None    # invigilators: most exams they may have (None = no limit)
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role == "admin"
+
+
+def account(request: Request) -> Account:
+    """The signed-in dashboard user. Role and limit are read on every request, so changes apply at once."""
     tok = request.cookies.get(SESSION_COOKIE, "")
     if not tok:
         raise HTTPException(401, "Please sign in.")
     with db.conn() as c:
-        row = c.execute("SELECT username, expires_ts FROM sessions WHERE token_hash=?",
+        row = c.execute("SELECT s.username, s.expires_ts, a.role, a.exam_quota FROM sessions s "
+                        "JOIN admins a ON a.username = s.username WHERE s.token_hash=?",
                         (db.secret_hash("session", tok),)).fetchone()
     if not row or row["expires_ts"] < db.now():
         raise HTTPException(401, "Session expired. Please sign in again.")
     # CSRF guard: browsers cannot add custom headers to cross-site requests without CORS, which is off.
     if request.method != "GET" and request.headers.get("x-proctor") != "1":
         raise HTTPException(403, "Missing request header.")
-    return row["username"]
+    return Account(row["username"], row["role"], row["exam_quota"])
+
+
+def admin_only(me: Account = Depends(account)) -> Account:
+    if not me.is_admin:
+        raise HTTPException(403, "Only an admin can do this.")
+    return me
+
+
+def _my_exam(c, code: str, me: Account):
+    """An exam the user may manage: admins any, invigilators only their own (others look like they don't exist)."""
+    e = _exam(c, code)
+    if not me.is_admin and e["created_by"] != me.username:
+        raise HTTPException(404, "No exam with this code in your account.")
+    return e
 
 
 @app.post("/api/auth/login")
@@ -425,7 +452,7 @@ def login(body: LoginIn, request: Request, response: Response):
 
 
 @app.post("/api/auth/logout")
-def logout(request: Request, response: Response, user: str = Depends(admin)):
+def logout(request: Request, response: Response, me: Account = Depends(account)):
     with db.conn() as c:
         c.execute("DELETE FROM sessions WHERE token_hash=?",
                   (db.secret_hash("session", request.cookies.get(SESSION_COOKIE, "")),))
@@ -434,8 +461,10 @@ def logout(request: Request, response: Response, user: str = Depends(admin)):
 
 
 @app.get("/api/auth/me")
-def me(user: str = Depends(admin)):
-    return {"username": user}
+def whoami(me: Account = Depends(account)):
+    with db.conn() as c:
+        used = c.execute("SELECT COUNT(*) FROM exams WHERE created_by=?", (me.username,)).fetchone()[0]
+    return {"username": me.username, "role": me.role, "exam_quota": me.exam_quota, "exams_used": used}
 
 
 class PasswordIn(BaseModel):
@@ -444,46 +473,87 @@ class PasswordIn(BaseModel):
 
 
 @app.post("/api/auth/password")
-def change_password(body: PasswordIn, user: str = Depends(admin)):
+def change_password(body: PasswordIn, me: Account = Depends(account)):
     with db.conn() as c:
-        row = c.execute("SELECT pw_hash FROM admins WHERE username=?", (user,)).fetchone()
+        row = c.execute("SELECT pw_hash FROM admins WHERE username=?", (me.username,)).fetchone()
         if not db.check_password(body.old_password, row["pw_hash"]):
             raise HTTPException(400, "Current password is wrong.")
-        c.execute("UPDATE admins SET pw_hash=? WHERE username=?", (db.hash_password(body.new_password), user))
+        c.execute("UPDATE admins SET pw_hash=? WHERE username=?", (db.hash_password(body.new_password), me.username))
     return {"ok": True}
 
 
-# ================================================================ ADMIN: users
+# ================================================================ ADMIN: users (admins only)
+ROLES = ("admin", "invigilator")
+
+
 class UserIn(BaseModel):
     username: str = Field(max_length=64)
     password: str = Field(min_length=10, max_length=200)
+    role: str = Field(default="invigilator", pattern="^(admin|invigilator)$")
+    exam_quota: int | None = Field(default=5, ge=0, le=1000)
+
+
+class UserUpdate(BaseModel):
+    role: str = Field(pattern="^(admin|invigilator)$")
+    exam_quota: int | None = Field(default=None, ge=0, le=1000)
+    password: str = Field(default="", max_length=200)   # optional reset
+
+
+def _admins_left(c, without: str) -> int:
+    return c.execute("SELECT COUNT(*) FROM admins WHERE role='admin' AND username<>?", (without,)).fetchone()[0]
 
 
 @app.get("/api/admin/users")
-def list_users(user: str = Depends(admin)):
+def list_users(me: Account = Depends(admin_only)):
     with db.conn() as c:
-        return [dict(r) for r in c.execute("SELECT username, created_ts FROM admins ORDER BY username")]
+        return [dict(r) for r in c.execute(
+            "SELECT a.username, a.role, a.exam_quota, a.created_ts, "
+            "(SELECT COUNT(*) FROM exams e WHERE e.created_by = a.username) AS exams_used "
+            "FROM admins a ORDER BY a.role, a.username")]
 
 
 @app.post("/api/admin/users")
-def add_user(body: UserIn, user: str = Depends(admin)):
+def add_user(body: UserIn, me: Account = Depends(admin_only)):
     if not USER_RE.match(body.username):
         raise HTTPException(400, "Username: 3-64 letters, digits, . _ @ -")
+    quota = None if body.role == "admin" else (body.exam_quota if body.exam_quota is not None else 5)
     with db.conn() as c:
         if c.execute("SELECT 1 FROM admins WHERE username=?", (body.username,)).fetchone():
             raise HTTPException(409, "That username already exists.")
-        c.execute("INSERT INTO admins VALUES (?,?,?)", (body.username, db.hash_password(body.password), db.now()))
+        c.execute("INSERT INTO admins(username, pw_hash, created_ts, role, exam_quota) VALUES (?,?,?,?,?)",
+                  (body.username, db.hash_password(body.password), db.now(), body.role, quota))
+    return {"ok": True}
+
+
+@app.put("/api/admin/users/{username}")
+def update_user(username: str, body: UserUpdate, me: Account = Depends(admin_only)):
+    if body.password and len(body.password) < 10:
+        raise HTTPException(400, "A new password needs at least 10 characters.")
+    quota = None if body.role == "admin" else (body.exam_quota if body.exam_quota is not None else 5)
+    with db.conn() as c:
+        row = c.execute("SELECT role FROM admins WHERE username=?", (username,)).fetchone()
+        if not row:
+            raise HTTPException(404, "No such user.")
+        if row["role"] == "admin" and body.role != "admin":
+            if username == me.username:
+                raise HTTPException(400, "You cannot remove your own admin rights. Ask another admin.")
+            if _admins_left(c, username) == 0:
+                raise HTTPException(400, "There must always be at least one admin.")
+        c.execute("UPDATE admins SET role=?, exam_quota=? WHERE username=?", (body.role, quota, username))
+        if body.password:
+            c.execute("UPDATE admins SET pw_hash=? WHERE username=?", (db.hash_password(body.password), username))
+            c.execute("DELETE FROM sessions WHERE username=?", (username,))
     return {"ok": True}
 
 
 @app.delete("/api/admin/users/{username}")
-def delete_user(username: str, user: str = Depends(admin)):
-    if username == user:
+def delete_user(username: str, me: Account = Depends(admin_only)):
+    if username == me.username:
         raise HTTPException(400, "You cannot remove your own account.")
     with db.conn() as c:
         c.execute("DELETE FROM admins WHERE username=?", (username,))
         c.execute("DELETE FROM sessions WHERE username=?", (username,))
-    return {"ok": True}
+    return {"ok": True}   # their exams stay; admins can still see and manage them
 
 
 # ================================================================ ADMIN: exams
@@ -541,10 +611,11 @@ def _exam_admin(e):
 
 
 @app.get("/api/admin/exams")
-def list_exams(user: str = Depends(admin)):
+def list_exams(me: Account = Depends(account)):
     t = db.now()
     with db.conn() as c:
-        exams = c.execute("SELECT * FROM exams ORDER BY start_ts DESC").fetchall()
+        exams = (c.execute("SELECT * FROM exams ORDER BY start_ts DESC") if me.is_admin else
+                 c.execute("SELECT * FROM exams WHERE created_by=? ORDER BY start_ts DESC", (me.username,))).fetchall()
         joined = dict(c.execute("SELECT exam_code, COUNT(*) FROM participants GROUP BY exam_code").fetchall())
         online = dict(c.execute("SELECT exam_code, COUNT(*) FROM presence WHERE last_seen>=? GROUP BY exam_code",
                                 (t - GAP_S,)).fetchall())
@@ -555,30 +626,35 @@ def list_exams(user: str = Depends(admin)):
 
 
 @app.get("/api/admin/exams/{code}")
-def get_exam(code: str, user: str = Depends(admin)):
+def get_exam(code: str, me: Account = Depends(account)):
     with db.conn() as c:
-        return _exam_admin(_exam(c, code))
+        return _exam_admin(_my_exam(c, code, me))
 
 
 @app.post("/api/admin/exams")
-def create_exam(body: ExamIn, user: str = Depends(admin)):
+def create_exam(body: ExamIn, me: Account = Depends(account)):
     sites, roster = _validate_exam(body, need_pin=True)
     code = body.code.upper()
     with db.conn() as c:
         if c.execute("SELECT 1 FROM exams WHERE code=?", (code,)).fetchone():
-            raise HTTPException(409, "An exam with this code already exists.")
+            raise HTTPException(409, "An exam with this code already exists. Choose another code.")
+        if not me.is_admin and me.exam_quota is not None:
+            used = c.execute("SELECT COUNT(*) FROM exams WHERE created_by=?", (me.username,)).fetchone()[0]
+            if used >= me.exam_quota:
+                raise HTTPException(403, f"You have reached your limit of {me.exam_quota} exams. "
+                                         "Delete an old exam, or ask an admin to raise your limit.")
         c.execute("INSERT INTO exams(code, name, start_ts, end_ts, pin_hash, allowed_sites, grace_s, flag_outside, "
                   "roster, created_by, created_ts) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                   (code, body.name.strip(), body.start_ts, body.end_ts, db.secret_hash("pin", code, body.pin),
-                   json.dumps(sites), body.grace_s, int(body.flag_outside), json.dumps(roster), user, db.now()))
+                   json.dumps(sites), body.grace_s, int(body.flag_outside), json.dumps(roster), me.username, db.now()))
     return {"code": code}
 
 
 @app.put("/api/admin/exams/{code}")
-def update_exam(code: str, body: ExamIn, user: str = Depends(admin)):
+def update_exam(code: str, body: ExamIn, me: Account = Depends(account)):
     sites, roster = _validate_exam(body, need_pin=False)
     with db.conn() as c:
-        e = _exam(c, code)
+        e = _my_exam(c, code, me)
         pin_hash = db.secret_hash("pin", e["code"], body.pin) if body.pin else e["pin_hash"]
         c.execute("UPDATE exams SET name=?, start_ts=?, end_ts=?, pin_hash=?, allowed_sites=?, grace_s=?, "
                   "flag_outside=?, roster=? WHERE code=?",
@@ -594,7 +670,7 @@ class SitesCheckIn(BaseModel):
 
 
 @app.post("/api/admin/sites/check")
-def check_sites(body: SitesCheckIn, user: str = Depends(admin)):
+def check_sites(body: SitesCheckIn, me: Account = Depends(account)):
     """Live preview for the exam editor: how each allowed-site line will be applied."""
     return rules.describe([x[:500] for x in body.lines], body.test_url)
 
@@ -605,14 +681,14 @@ class AllowIn(BaseModel):
 
 
 @app.post("/api/admin/exams/{code}/allow")
-def allow_site(code: str, body: AllowIn, user: str = Depends(admin)):
+def allow_site(code: str, body: AllowIn, me: Account = Depends(account)):
     """Add a site to a (running) exam's allowlist, e.g. straight from a flag, and dismiss its flags."""
     entry = rules.normalise_entry(body.site)
     if not entry:
         raise HTTPException(400, "That is not a valid site.")
     host = entry.partition("/")[0]
     with db.conn() as c:
-        e = _exam(c, code)
+        e = _my_exam(c, code, me)
         sites = _sites(e)
         if not rules.is_allowed(host, entry.partition("/")[2], sites):
             sites = sorted(set(sites) | {entry})
@@ -623,7 +699,7 @@ def allow_site(code: str, body: AllowIn, user: str = Depends(admin)):
                                "AND rule IN ('disallowed_site','tab_open')", (e["code"],)).fetchall():
                 if rules.is_allowed(f["domain"], f["path"], sites):
                     c.execute("UPDATE flags SET status='dismissed', note=?, reviewer=? WHERE id=?",
-                              (f"Site added to the allowed list ({entry})", user, f["id"]))
+                              (f"Site added to the allowed list ({entry})", me.username, f["id"]))
                     dismissed += 1
         # Update live tiles now; students' extensions pick up the new list on their next report (<= 30 s).
         for p in c.execute("SELECT roll_no, kind, domain, path, allowed, bad_tabs FROM presence WHERE exam_code=?",
@@ -636,9 +712,9 @@ def allow_site(code: str, body: AllowIn, user: str = Depends(admin)):
 
 
 @app.delete("/api/admin/exams/{code}")
-def delete_exam(code: str, user: str = Depends(admin)):
+def delete_exam(code: str, me: Account = Depends(account)):
     with db.conn() as c:
-        e = _exam(c, code)
+        e = _my_exam(c, code, me)
         for tbl in ("participants", "presence", "events", "flags"):
             c.execute(f"DELETE FROM {tbl} WHERE exam_code=?", (e["code"],))
         c.execute("DELETE FROM exams WHERE code=?", (e["code"],))
@@ -663,10 +739,10 @@ def _status(e, p, t):
 
 
 @app.get("/api/admin/exams/{code}/live")
-def live(code: str, user: str = Depends(admin)):
+def live(code: str, me: Account = Depends(account)):
     t = db.now()
     with db.conn() as c:
-        e = _exam(c, code)
+        e = _my_exam(c, code, me)
         parts = {r["roll_no"]: r for r in c.execute(
             "SELECT roll_no, name, joined_ts FROM participants WHERE exam_code=?", (e["code"],))}
         pres = {r["roll_no"]: r for r in c.execute("SELECT * FROM presence WHERE exam_code=?", (e["code"],))}
@@ -697,9 +773,9 @@ def live(code: str, user: str = Depends(admin)):
 
 
 @app.get("/api/admin/exams/{code}/students/{roll}")
-def student_detail(code: str, roll: str, user: str = Depends(admin)):
+def student_detail(code: str, roll: str, me: Account = Depends(account)):
     with db.conn() as c:
-        e = _exam(c, code)
+        e = _my_exam(c, code, me)
         p = c.execute("SELECT roll_no, name, device_id, joined_ts FROM participants WHERE exam_code=? AND roll_no=?",
                       (e["code"], roll.upper())).fetchone()
         events = [dict(r) for r in c.execute(
@@ -718,19 +794,21 @@ class ReviewIn(BaseModel):
 
 
 @app.post("/api/admin/flags/{flag_id}")
-def review_flag(flag_id: int, body: ReviewIn, user: str = Depends(admin)):
+def review_flag(flag_id: int, body: ReviewIn, me: Account = Depends(account)):
     with db.conn() as c:
-        n = c.execute("UPDATE flags SET status=?, note=?, reviewer=? WHERE id=?",
-                      (body.status, body.note.strip(), user, flag_id)).rowcount
-    if not n:
-        raise HTTPException(404, "Flag not found.")
+        f = c.execute("SELECT exam_code FROM flags WHERE id=?", (flag_id,)).fetchone()
+        if not f:
+            raise HTTPException(404, "Flag not found.")
+        _my_exam(c, f["exam_code"], me)
+        c.execute("UPDATE flags SET status=?, note=?, reviewer=? WHERE id=?",
+                  (body.status, body.note.strip(), me.username, flag_id))
     return {"ok": True}
 
 
 @app.get("/api/admin/exams/{code}/export.csv")
-def export_flags(code: str, user: str = Depends(admin)):
+def export_flags(code: str, me: Account = Depends(account)):
     with db.conn() as c:
-        e = _exam(c, code)
+        e = _my_exam(c, code, me)
         names = dict(c.execute("SELECT roll_no, name FROM participants WHERE exam_code=?", (e["code"],)).fetchall())
         rows = c.execute("SELECT * FROM flags WHERE exam_code=? ORDER BY roll_no, seg_start", (e["code"],)).fetchall()
     buf = io.StringIO()
