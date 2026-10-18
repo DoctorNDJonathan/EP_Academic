@@ -122,6 +122,10 @@ async def security_headers(request: Request, call_next):
     resp.headers["Referrer-Policy"] = "no-referrer"
     if PRODUCTION:
         resp.headers["Strict-Transport-Security"] = "max-age=31536000"
+    if request.url.path.startswith("/static/"):
+        # Browsers must check for a newer copy on every visit (a quick 304 when unchanged), so a dashboard
+        # update never runs with yesterday's script.
+        resp.headers["Cache-Control"] = "no-cache"
     if not request.url.path.startswith("/api/"):
         resp.headers["X-Frame-Options"] = "DENY"
         resp.headers["Content-Security-Policy"] = (
