@@ -189,17 +189,24 @@ class Tab(BaseModel):
     path: str = Field(default="", max_length=300)
 
 
+class Blocked(BaseModel):
+    domain: str = Field(max_length=253)
+    path: str = Field(default="", max_length=300)
+    ts: float
+
+
 class IngestIn(BaseModel):
     events: list[Seg] = Field(default=[], max_length=500)
     current: Seg | None = None
     open_tabs: list[Tab] = Field(default=[], max_length=200)
     heartbeats: list[float] = Field(default=[], max_length=600)   # extension's 30 s ticks, kept through network drops
+    blocked: list[Blocked] = Field(default=[], max_length=200)    # pages the extension stopped from opening
 
 
 def _exam_public(e, t):
     return {"code": e["code"], "name": e["name"], "start_ts": e["start_ts"], "end_ts": e["end_ts"],
             "state": _state(e, t), "server_time": t, "allowed_sites": _sites(e),
-            "grace_s": e["grace_s"], "flag_outside": bool(e["flag_outside"])}
+            "grace_s": e["grace_s"], "flag_outside": bool(e["flag_outside"]), "block_sites": bool(e["block_sites"])}
 
 
 @app.get("/api/health")
@@ -341,6 +348,12 @@ def ingest(body: IngestIn, request: Request):
                     c.execute("UPDATE flags SET level='LOW', detail=? WHERE id=?",
                               ("Network drop: the extension kept running offline and sent its records on reconnecting",
                                g["id"]))
+
+        # 3b. Pages the extension blocked (exams with blocking on): the attempt itself is reported
+        for b in body.blocked:
+            if s0 <= b.ts <= limit:
+                _flag(c, code, roll, "blocked_attempt", "MEDIUM", seg_start=b.ts, domain=b.domain.strip().lower(),
+                      path=b.path.strip(), detail="The extension stopped this page from opening")
 
         # 4. What the student is doing right now
         cur, allowed_now = body.current, True
@@ -570,6 +583,7 @@ class ExamIn(BaseModel):
     allowed_sites: list[str] = Field(default=[], max_length=200)
     grace_s: int = Field(default=3, ge=0, le=120)
     flag_outside: bool = True
+    block_sites: bool = False
     roster: str = Field(default="", max_length=200_000)
 
 
@@ -610,6 +624,7 @@ def _validate_exam(body: ExamIn, need_pin: bool):
 def _exam_admin(e):
     return {"code": e["code"], "name": e["name"], "start_ts": e["start_ts"], "end_ts": e["end_ts"],
             "allowed_sites": _sites(e), "grace_s": e["grace_s"], "flag_outside": bool(e["flag_outside"]),
+            "block_sites": bool(e["block_sites"]),
             "roster": "\n".join(f"{r},{n}" if n else r for r, n in json.loads(e["roster"])),
             "roster_size": len(json.loads(e["roster"])), "created_by": e["created_by"]}
 
@@ -648,9 +663,10 @@ def create_exam(body: ExamIn, me: Account = Depends(account)):
                 raise HTTPException(403, f"You have reached your limit of {me.exam_quota} exams. "
                                          "Delete an old exam, or ask an admin to raise your limit.")
         c.execute("INSERT INTO exams(code, name, start_ts, end_ts, pin_hash, allowed_sites, grace_s, flag_outside, "
-                  "roster, created_by, created_ts) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                  "block_sites, roster, created_by, created_ts) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
                   (code, body.name.strip(), body.start_ts, body.end_ts, db.secret_hash("pin", code, body.pin),
-                   json.dumps(sites), body.grace_s, int(body.flag_outside), json.dumps(roster), me.username, db.now()))
+                   json.dumps(sites), body.grace_s, int(body.flag_outside), int(body.block_sites), json.dumps(roster),
+                   me.username, db.now()))
     return {"code": code}
 
 
@@ -661,9 +677,9 @@ def update_exam(code: str, body: ExamIn, me: Account = Depends(account)):
         e = _my_exam(c, code, me)
         pin_hash = db.secret_hash("pin", e["code"], body.pin) if body.pin else e["pin_hash"]
         c.execute("UPDATE exams SET name=?, start_ts=?, end_ts=?, pin_hash=?, allowed_sites=?, grace_s=?, "
-                  "flag_outside=?, roster=? WHERE code=?",
+                  "flag_outside=?, block_sites=?, roster=? WHERE code=?",
                   (body.name.strip(), body.start_ts, body.end_ts, pin_hash, json.dumps(sites), body.grace_s,
-                   int(body.flag_outside), json.dumps(roster), e["code"]))
+                   int(body.flag_outside), int(body.block_sites), json.dumps(roster), e["code"]))
         # Changing the allowlist mid-exam: live status is re-evaluated on each student's next report (<= 30 s).
     return {"code": e["code"]}
 
@@ -700,7 +716,7 @@ def allow_site(code: str, body: AllowIn, me: Account = Depends(account)):
         dismissed = 0
         if body.dismiss:
             for f in c.execute("SELECT id, domain, path FROM flags WHERE exam_code=? AND status='open' "
-                               "AND rule IN ('disallowed_site','tab_open')", (e["code"],)).fetchall():
+                               "AND rule IN ('disallowed_site','tab_open','blocked_attempt')", (e["code"],)).fetchall():
                 if rules.is_allowed(f["domain"], f["path"], sites):
                     c.execute("UPDATE flags SET status='dismissed', note=?, reviewer=? WHERE id=?",
                               (f"Site added to the allowed list ({entry})", me.username, f["id"]))

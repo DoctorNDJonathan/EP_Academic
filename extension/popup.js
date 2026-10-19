@@ -39,6 +39,10 @@ function render(s, now, allowedNow) {
   b.hidden = state !== "running";
   b.className = "banner " + (allowedNow ? "ok" : "bad");
   b.textContent = allowedNow ? "You are on an allowed site." : "You are NOT on an allowed site. This is being reported.";
+  const note = $("blockNote");
+  note.hidden = !s.block_sites || state === "finished";
+  note.textContent = state === "running" ? "Other websites are blocked until the exam ends."
+    : "Other websites will be blocked while the exam runs.";
   $("examName").textContent = s.name;
   $("student").textContent = s.student_name ? `${s.roll_no} (${s.student_name})` : s.roll_no;
   $("examTime").textContent = `${clock(s.start_ts)} to ${hm(s.end_ts)}`;

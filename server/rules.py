@@ -20,6 +20,7 @@ from urllib.parse import urlsplit
 OUTSIDE = "(outside-browser)"
 LOCKED = "(locked)"
 NEW_TAB = "new-tab"              # the empty new-tab page is always allowed
+BLOCKED_PAGE = "blocked-page"    # the extension's own "this site is blocked" page: always allowed
 INTERNAL = {"browser-internal", "local-file"}
 
 _HOST_RE = re.compile(r"^(?=.{3,253}$)[a-z0-9-]+(\.[a-z0-9-]+)+$")
@@ -57,7 +58,7 @@ def normalise_entry(e: str) -> str | None:
 
 
 def is_allowed(domain: str, path: str, entries: list[str]) -> bool:
-    if domain == NEW_TAB:
+    if domain in (NEW_TAB, BLOCKED_PAGE):
         return True
     p = (path or "").strip("/")
     for e in entries:
@@ -117,6 +118,7 @@ RULE_LABELS = {
     "left_browser": "Switched to another app or window",
     "screen_locked": "Screen locked or computer asleep",
     "tab_open": "Has a tab open on a site that is not allowed",
+    "blocked_attempt": "Tried to open a site that is not allowed (blocked)",
     "monitoring_gap": "No contact from the extension",
     "extension_removed": "Removed the extension during the exam",
     "device_changed": "Rejoined from a different browser",

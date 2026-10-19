@@ -62,6 +62,7 @@ check("rule: path case kept", n("https://colab.research.google.com/drive/1AbCdEf
 check("rule: invalid rejected", [n(x) for x in ("com", "localhost", "bad entry", "http://")] == [None] * 4)
 check("rule: site covers subdomains", rules.is_allowed("colab.research.google.com", "/drive/Z", ["research.google.com"]))
 check("rule: sibling not covered", not rules.is_allowed("colab.research.google.com", "/", ["colab.google.com"]))
+check("rule: blocked page always allowed", rules.is_allowed("blocked-page", "", []))
 check("rule: path segment boundary", not rules.is_allowed("desmos.com", "/calculators", ["desmos.com/calculator"])
       and rules.is_allowed("desmos.com", "/calculator/abc", ["desmos.com/calculator"]))
 
@@ -165,6 +166,29 @@ check("any notebook now allowed", r["allowed_now"] and "colab.research.google.co
 check("allow invalid", req("POST", "/api/admin/exams/COLAB/allow", {"site": "not a site"})[0] == 400)
 req("DELETE", "/api/admin/exams/COLAB")
 
+
+# ---------------------------------------------------------------- blocking: per-exam "block sites" setting
+req("DELETE", "/api/admin/exams/BLK")
+blk = {"code": "BLK", "name": "Blocking test", "start_ts": t0, "end_ts": t0 + 3600, "pin": "4821", "grace_s": 3, "flag_outside": True,
+       "block_sites": True, "allowed_sites": ["https://docs.google.com/forms/d/e/ABC/viewform", "accounts.google.com"], "roster": ""}
+check("create exam with blocking", req("POST", "/api/admin/exams", blk)[0] == 200)
+check("blocking setting saved", req("GET", "/api/admin/exams/BLK")[1]["block_sites"] is True)
+s_, j = req("POST", "/api/join", {"exam_code": "BLK", "roll_no": "B1", "pin": "4821", "device_id": "dev-block-001", "consent": True}, admin=False)
+check("extension told to block on join", j["block_sites"] is True)
+T = time.time()
+s_, r = req("POST", "/api/ingest", {"blocked": [{"domain": "chatgpt.com", "path": "/", "ts": T - 4}],
+                                    "current": {"kind": "tab", "domain": "blocked-page", "path": "", "title": "Site blocked", "start_ts": T - 3}},
+            tok=j["token"], admin=False)
+check("blocked page itself is not a violation", s_ == 200 and r["allowed_now"] and r["block_sites"] is True)
+fl = req("GET", "/api/admin/exams/BLK/live")[1]["flags"]
+check("blocked attempt flagged MEDIUM", [(f["rule"], f["level"], f["domain"]) for f in fl] == [("blocked_attempt", "MEDIUM", "chatgpt.com")])
+check("allow site dismisses blocked attempts", req("POST", "/api/admin/exams/BLK/allow", {"site": "chatgpt.com"})[1]["dismissed"] == 1)
+check("turn blocking off", req("PUT", "/api/admin/exams/BLK", {**blk, "block_sites": False})[0] == 200)
+check("extension told blocking is off", req("POST", "/api/ingest", {}, tok=j["token"], admin=False)[1]["block_sites"] is False)
+no_setting = {k: v for k, v in blk.items() if k != "block_sites"}          # an older dashboard sends no block_sites
+check("blocking is off by default", req("POST", "/api/admin/exams", {**no_setting, "code": "BLK2"})[0] == 200
+      and req("GET", "/api/admin/exams/BLK2")[1]["block_sites"] is False)
+req("DELETE", "/api/admin/exams/BLK"); req("DELETE", "/api/admin/exams/BLK2")
 
 # ---------------------------------------------------------------- roles: admins manage users, invigilators only their own exams
 inv = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))

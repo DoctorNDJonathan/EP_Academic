@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS exams(
     grace_s INTEGER NOT NULL DEFAULT 3,
     flag_outside INTEGER NOT NULL DEFAULT 1,
     roster TEXT NOT NULL DEFAULT '[]',
+    block_sites INTEGER NOT NULL DEFAULT 0,
     created_by TEXT NOT NULL DEFAULT '',
     created_ts DOUBLE PRECISION NOT NULL
 );
@@ -126,6 +127,7 @@ CREATE INDEX IF NOT EXISTS ix_exams_owner ON exams(created_by);
 ADDED_COLUMNS = [
     ("admins", "role", "TEXT NOT NULL DEFAULT 'admin'"),   # existing users stay admins: nobody is locked out
     ("admins", "exam_quota", "INTEGER"),
+    ("exams", "block_sites", "INTEGER NOT NULL DEFAULT 0"),   # 1 = the extension stops other sites from opening
 ]
 
 

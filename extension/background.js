@@ -7,6 +7,10 @@
 //   - which other open tabs are on sites the exam does not allow
 // It never records keystrokes, page content, screenshots, camera or microphone.
 //
+// If the exam has "block sites" on, it also stops Chrome opening any website that is not
+// allowed, only during the exam window (declarativeNetRequest rules), shows its own
+// "blocked" page instead, and reports each attempt.
+//
 // Every change is sent at once so invigilators see it live; a 30 s alarm acts
 // as heartbeat. If the network drops, segments queue in chrome.storage and are
 // sent on reconnect. All state lives in storage because Chrome can stop the
@@ -19,6 +23,13 @@ const OUTSIDE = "(outside-browser)";
 const LOCKED = "(locked)";
 const NEW_TAB = "new-tab";
 const INTERNAL = new Set(["browser-internal", "local-file"]);
+const BLOCKED_PAGE = "blocked-page"; // this extension's own "site blocked" page: always allowed
+// Sign-in providers briefly pass through these pages while logging in; when the provider's sign-in
+// page is allowed, these are let through too so blocking never breaks a login.
+const SIGNIN_HOPS = {
+  "accounts.google.com": ["accounts.youtube.com"],
+  "login.microsoftonline.com": ["login.live.com", "login.microsoft.com"],
+};
 const SILENCE_S = 90; // no tick for this long = the extension was not running (browser closed, disabled, asleep)
 
 // ---------- state helpers ----------
@@ -38,6 +49,8 @@ function parseUrl(url) {
     if (/^chrome(-search)?:$/.test(u.protocol) && /^(newtab|new-tab-page|local-ntp)$/.test(u.hostname))
       return { domain: NEW_TAB, path: "" };
     if (u.protocol === "file:") return { domain: "local-file", path: "" };
+    if (u.protocol === "chrome-extension:" && u.hostname === chrome.runtime.id && u.pathname === "/blocked.html")
+      return { domain: BLOCKED_PAGE, path: "" };
     return { domain: "browser-internal", path: `${u.protocol}//${u.hostname}`.slice(0, 100) };
   } catch {
     return { domain: "browser-internal", path: "" };
@@ -46,7 +59,7 @@ function parseUrl(url) {
 
 // Mirror of server/rules.py (the server stays the authority).
 function isAllowed(domain, path, entries) {
-  if (domain === NEW_TAB) return true;
+  if (domain === NEW_TAB || domain === BLOCKED_PAGE) return true;
   const p = (path || "").replace(/^\/+|\/+$/g, "");
   return (entries || []).some((e) => {
     const i = e.indexOf("/");
@@ -63,6 +76,59 @@ function violates(cur, s) {
 }
 
 const running = (s, t = nowServer(s)) => s && !s.finished && t >= s.start_ts && t <= s.end_ts;
+
+// ---------- blocking (exams with "block sites" on) ----------
+const reEsc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Rules for chrome.declarativeNetRequest: block every web page opened in a tab (priority 1), except
+// the allowed sites (priority 2). Only top-level pages are affected, so allowed pages load normally.
+function blockRules(entries) {
+  const rules = [{ id: 1, priority: 1, action: { type: "block" },
+                   condition: { regexFilter: "^https?://", resourceTypes: ["main_frame"] } }];
+  let id = 2;
+  const hosts = new Set();
+  for (const e of entries || []) {
+    const i = e.indexOf("/");
+    const host = i < 0 ? e : e.slice(0, i), prefix = i < 0 ? "" : e.slice(i + 1);
+    if (!prefix) hosts.add(host);
+    else rules.push({ id: id++, priority: 2, action: { type: "allow" }, condition: {
+      regexFilter: `^https?://([^/?#]*\\.)?${reEsc(host)}(:[0-9]+)?/${reEsc(prefix)}([/?#].*)?$`,
+      isUrlFilterCaseSensitive: true, resourceTypes: ["main_frame"] } });
+    for (const h of SIGNIN_HOPS[host] || []) hosts.add(h);
+    if (host === "accounts.google.com")   // Google sign-in also hops through its country domains
+      rules.push({ id: id++, priority: 2, action: { type: "allow" }, condition: {
+        regexFilter: "^https://accounts\\.google\\.(com?\\.)?[a-z]{2,3}(:[0-9]+)?/", resourceTypes: ["main_frame"] } });
+  }
+  if (hosts.size) rules.push({ id: id++, priority: 2, action: { type: "allow" },
+                               condition: { requestDomains: [...hosts], resourceTypes: ["main_frame"] } });
+  return rules;
+}
+
+// Make Chrome's rules match the exam: on during a running exam with blocking, otherwise none.
+// Rules survive browser restarts, so this also runs at start-up to clear rules from a finished exam.
+async function syncBlocking() {
+  const s = await getState();
+  const want = s && s.block_sites && running(s) ? blockRules(s.allowed_sites) : [];
+  const have = await chrome.declarativeNetRequest.getDynamicRules();
+  if (JSON.stringify(have.map(({ id, priority, action, condition }) => ({ id, priority, action, condition }))) === JSON.stringify(want)) return;
+  await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: have.map((r) => r.id), addRules: want });
+}
+
+// Chrome reports a blocked page as a navigation error. Show our page instead, and report the attempt.
+async function onBlocked(tabId, url) {
+  const s = await getState();
+  if (!s || !s.block_sites || !running(s)) return;
+  const { domain, path } = parseUrl(url);
+  if (isAllowed(domain, path, s.allowed_sites)) return;     // blocked by something else, not by us
+  s.blocked = [...(s.blocked || []), { domain, path, ts: nowServer(s) }].slice(-200);
+  await setState(s);
+  chrome.tabs.update(tabId, { url: chrome.runtime.getURL(`blocked.html#${encodeURIComponent(domain)}`) }).catch(() => {});
+  chrome.notifications.create(`blocked-${Date.now()}`, {
+    type: "basic", iconUrl: "icons/icon128.png", priority: 2, title: "Site blocked during this exam",
+    message: `${domain} is not on the allowed list for ${s.name}. The attempt is reported to the invigilator.`,
+  });
+  await push();
+}
 
 // ---------- observe current activity ----------
 async function observe() {
@@ -145,20 +211,23 @@ async function push() {
   if (s.finished && s.queue.length === 0) return;
   const events = s.queue.slice(0, 300);
   const heartbeats = (s.heartbeats || []).slice(0, 600);
+  const blocked = (s.blocked || []).slice(0, 200);
   try {
     const r = await call("POST", "/api/ingest", {
       events,
       heartbeats,
+      blocked,
       current: running(s) ? s.current : null,
       open_tabs: running(s) ? await openTabs() : [],
     }, s.token);
     const latest = await getState(); // queue may have grown while uploading
     latest.queue = latest.queue.slice(events.length);
     latest.heartbeats = (latest.heartbeats || []).slice(heartbeats.length);
+    latest.blocked = (latest.blocked || []).slice(blocked.length);
     latest.offset = r.server_time - Date.now() / 1000;
     // Invigilators can change the allowlist or extend the exam while it runs.
     Object.assign(latest, { allowed_sites: r.allowed_sites, grace_s: r.grace_s, flag_outside: r.flag_outside,
-                            start_ts: r.start_ts, end_ts: r.end_ts, name: r.name });
+                            block_sites: !!r.block_sites, start_ts: r.start_ts, end_ts: r.end_ts, name: r.name });
     if (latest.finished && nowServer(latest) <= latest.end_ts) latest.finished = false;
     latest.lastUpload = Date.now();
     latest.lastError = null;
@@ -168,7 +237,7 @@ async function push() {
     if (!latest) return;
     latest.lastError = e.status === 401 ? "Session expired. Join the exam again."
       : e.status === 409 ? null : "Offline. Activity is saved and will be sent when you reconnect.";
-    if (e.status === 409) { latest.queue = []; latest.heartbeats = []; latest.finished = true; }
+    if (e.status === 409) { latest.queue = []; latest.heartbeats = []; latest.blocked = []; latest.finished = true; }
     await setState(latest);
   }
 }
@@ -202,6 +271,7 @@ async function feedback() {
 async function onActivity() {
   const moved = await refresh();
   if (moved) await push();
+  await syncBlocking();
   await feedback();
 }
 
@@ -220,6 +290,7 @@ async function tick() {
   await refresh();          // first: it checks the silence since the previous heartbeat
   await recordHeartbeat();
   await push();
+  await syncBlocking();     // switches blocking on at the start and off at the end
   await feedback();
   const s = await getState();
   if (!s) return;
@@ -252,9 +323,9 @@ async function join(examCode, rollNo, pin) {
   await setState({
     exam_code: r.code, name: r.name, roll_no: r.roll_no, student_name: r.student_name,
     token: r.token, start_ts: r.start_ts, end_ts: r.end_ts,
-    allowed_sites: r.allowed_sites, grace_s: r.grace_s, flag_outside: r.flag_outside,
+    allowed_sites: r.allowed_sites, grace_s: r.grace_s, flag_outside: r.flag_outside, block_sites: !!r.block_sites,
     offset: r.server_time - Date.now() / 1000,
-    current: null, queue: [], heartbeats: [], lastBeat: null, finished: false, joinedAt: Date.now(),
+    current: null, queue: [], heartbeats: [], blocked: [], lastBeat: null, finished: false, joinedAt: Date.now(),
   });
   chrome.runtime.setUninstallURL(`${SERVER}/bye?k=${encodeURIComponent(r.uninstall_key)}`);
   chrome.idle.setDetectionInterval(IDLE_AFTER_S);
@@ -262,12 +333,14 @@ async function join(examCode, rollNo, pin) {
   await refresh();
   await recordHeartbeat();
   await push();
+  await syncBlocking();
   await feedback();
   return r;
 }
 
 async function ensureAlarm() {
   chrome.idle.setDetectionInterval(IDLE_AFTER_S);
+  await syncBlocking();     // e.g. clear rules left from an exam that ended while Chrome was closed
   const s = await getState();
   if (s && Date.now() / 1000 < s.end_ts + 900 && !(await chrome.alarms.get(TICK)))
     await chrome.alarms.create(TICK, { periodInMinutes: 0.5 });
@@ -282,6 +355,9 @@ chrome.tabs.onCreated.addListener(() => serial(onActivity));
 chrome.windows.onFocusChanged.addListener(() => serial(onActivity));
 chrome.idle.onStateChanged.addListener(() => serial(onActivity));
 chrome.alarms.onAlarm.addListener((a) => a.name === TICK && serial(tick));
+chrome.webNavigation.onErrorOccurred.addListener((d) => {
+  if (d.frameId === 0 && d.error === "net::ERR_BLOCKED_BY_CLIENT") serial(() => onBlocked(d.tabId, d.url));
+});
 chrome.runtime.onStartup.addListener(() => serial(ensureAlarm));
 chrome.runtime.onInstalled.addListener(() => serial(ensureAlarm));
 
@@ -308,6 +384,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
       if (s && !longOver && !(s.finished && s.queue.length === 0))
         return reply({ ok: false, error: "The exam is still running or data is still uploading." });
       await chrome.storage.local.remove("state");
+      await syncBlocking();
       chrome.runtime.setUninstallURL("");
       reply({ ok: true });
     });

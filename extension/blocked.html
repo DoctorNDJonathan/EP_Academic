@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Site blocked during your exam</title>
+<style>
+  :root { --ink:#1f3a5f; --text:#2d3748; --muted:#5a6678; --line:#d5dbe3; --bg:#f6f7f9; --bad:#b83232; --bad-bg:#fdecea; }
+  @media (prefers-color-scheme: dark) { :root { --ink:#8db4ea; --text:#e4e9f0; --muted:#98a4b3; --line:#2d3744; --bg:#12161d; --bad:#ff7a7a; --bad-bg:#3a1a1c; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--text);
+         font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 560px; width: 100%; }
+  img { width: 56px; height: 56px; }
+  h1 { font-size: 26px; line-height: 1.2; margin: 16px 0 8px; color: var(--ink); }
+  .site { display: inline-block; font: 600 15px ui-monospace, Menlo, monospace; color: var(--bad); background: var(--bad-bg); padding: 2px 8px; border-radius: 6px; }
+  p { margin: 0 0 12px; }
+  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 24px 0 8px; }
+  #sites { display: flex; flex-direction: column; gap: 8px; }
+  #sites a { display: block; padding: 10px 14px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); text-decoration: none; font-weight: 600; overflow-wrap: anywhere; }
+  #sites a:hover, #sites a:focus-visible { border-color: var(--ink); outline: none; }
+  .muted { color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <img src="icons/icon128.png" alt="">
+  <h1>This site is blocked during your exam</h1>
+  <p><span class="site" id="site">This site</span> is not on the allowed list for <b id="exam">this exam</b>, so it was not opened.</p>
+  <p class="muted">The attempt has been reported to your invigilator. If you need this site for the exam, tell the invigilator: they can allow it for everyone within a minute.</p>
+  <h2>Go back to an allowed site</h2>
+  <div id="sites"></div>
+</main>
+<script src="blocked.js"></script>
+</body>
+</html>

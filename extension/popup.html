@@ -35,6 +35,7 @@
   h2 { font-size:13px; margin:14px 0 4px; color:var(--muted); font-weight:600; }
   ul { margin:0; padding-left:18px; font-size:13px; max-height:130px; overflow:auto; }
   .link { background:none; color:var(--ink); text-decoration:underline; padding:0; width:auto; font-weight:400; font-size:12.5px; }
+  .block-note { font-size:12.5px; color:var(--muted); border-left:3px solid var(--ink); padding-left:8px; margin:6px 0 0; }
   [hidden] { display:none !important; }
 </style>
 </head>
@@ -60,6 +61,7 @@
   <section id="statusView" hidden>
     <div class="status" id="statusLine"><span class="dot"></span><span id="statusText"></span></div>
     <div class="banner" id="banner" hidden></div>
+    <p class="block-note" id="blockNote" hidden></p>
     <dl>
       <dt>Exam</dt><dd id="examName"></dd>
       <dt>Student</dt><dd id="student"></dd>

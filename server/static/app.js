@@ -171,6 +171,8 @@ async function viewExamForm(code) {
       </div>
       <label class="check full"><input type="checkbox" name="flag_outside" ${ex?.flag_outside ?? true ? "checked" : ""}>
         <span>Flag when a student leaves Chrome for another app or window (Word, WhatsApp desktop, another browser, etc.), or locks the screen.</span></label>
+      <label class="check full"><input type="checkbox" name="block_sites" ${ex?.block_sites ? "checked" : ""}>
+        <span><b>Block sites that aren't allowed.</b> During the exam, Chrome won't open any other website; students see a "blocked" page and each attempt is still flagged. Make sure every site the exam needs is listed, including sign-in pages, or students will be stuck. Needs extension 3.1 or later.</span></label>
       <label class="full">Class roster (optional)
         <textarea name="roster" rows="6" spellcheck="false" placeholder="ROLL,Name&#10;21BM001,Asha Rao&#10;21BM002,Vikram Shah">${esc(ex?.roster || "")}</textarea>
         <div class="hint">One student per line: roll number, then name (comma or tab separated; you can paste from a spreadsheet). With a roster, only these roll numbers can join, and the live view shows who has not joined yet.</div></label>
@@ -195,6 +197,7 @@ async function viewExamForm(code) {
       start_ts: fromLocalInput(f.get("start")), end_ts: fromLocalInput(f.get("end")),
       pin: String(f.get("pin") || "").trim(), grace_s: Number(f.get("grace_s") || 0),
       flag_outside: f.get("flag_outside") === "on",
+      block_sites: f.get("block_sites") === "on",
       allowed_sites: String(f.get("sites")).split(/\r?\n/).map((s) => s.trim()).filter(Boolean),
       roster: String(f.get("roster") || ""),
     };
@@ -323,7 +326,7 @@ function renderHeader() {
   const e = live.exam, t = live.server_time;
   $("#lvName").textContent = e.name;
   $("#lvCode").textContent = e.code;
-  $("#lvWhen").textContent = `${fmtWhen(e.start_ts)} – ${fmtHM(e.end_ts)}`;
+  $("#lvWhen").textContent = `${fmtWhen(e.start_ts)} – ${fmtHM(e.end_ts)}${e.block_sites ? " · other sites blocked" : ""}`;
   const st = $("#lvState");
   st.className = `pill ${e.state}`;
   st.textContent = e.state;
@@ -386,6 +389,7 @@ function flagWhat(f) {
     case "left_browser": return `Other app / window${dur}`;
     case "screen_locked": return `Screen locked${dur}`;
     case "tab_open": return `Tab open: ${f.domain}`;
+    case "blocked_attempt": return `Tried to open ${f.domain}${f.path} (blocked)`;
     case "monitoring_gap": return `Silent${dur}`;
     default: return f.label;
   }
@@ -451,7 +455,7 @@ async function loadDrawer(roll, first) {
             ${f.status !== "confirmed" ? `<button class="btn sm danger" data-review="confirmed" data-id="${f.id}">Confirm</button>` : ""}
             ${f.status !== "dismissed" ? `<button class="btn sm" data-review="dismissed" data-id="${f.id}">Dismiss</button>` : ""}
             ${f.status !== "open" ? `<button class="btn sm ghost" data-review="open" data-id="${f.id}">Reopen</button>` : ""}
-            ${["disallowed_site", "tab_open"].includes(f.rule) && f.status === "open" && f.domain
+            ${["disallowed_site", "tab_open", "blocked_attempt"].includes(f.rule) && f.status === "open" && f.domain
               ? `<button class="btn sm" data-allow-site="${esc(f.domain)}" title="Add this site to the exam's allowed list">Allow ${esc(f.domain)}</button>` : ""}
           </div>
         </div>`).join("") : `<div class="muted">No flags.</div>`}
