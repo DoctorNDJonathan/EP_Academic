@@ -110,8 +110,16 @@ When you paste a form link, delete <code>/viewform</code> (and anything after it
   <tr><td>PIN</td><td>4 to 12 letters or digits; a new one for every test. Announce it only at the start</td></tr>
   <tr><td>Grace period</td><td>3 seconds (default). Shorter visits, such as redirects and mis-clicks, are not flagged</td></tr>
   <tr><td>Flag leaving Chrome</td><td><b>On</b> for most tests. Switch it <b>off</b> if students must use a desktop app (for example Excel), or every one of them will be flagged</td></tr>
+  <tr><td>Block sites that aren't allowed</td><td>Off by default. Turn it on to stop other websites opening at all during the test: students see a "blocked" page instead, and each attempt is flagged. See the box below first</td></tr>
   <tr><td>Class roster</td><td>Recommended: paste roll numbers and names from a spreadsheet. Only listed students can join, and you see who hasn't joined</td></tr>
 </table>
+
+<div class="box warn"><h4>Before you turn on blocking</h4><ul>
+  <li><b>Your allowed list must be complete.</b> Without blocking, a missing site causes a flag; with blocking, students cannot get through at all. Test every link, including the sign-in page, in <b>Test a link</b>.</li>
+  <li><b>Students need extension 3.1 or later.</b> Chrome updates it automatically, but after this update it may <b>pause</b> the extension until each student accepts a new permission ("Block content on any page"). Ask students to check, before the test, that Exam Proctor is switched on.</li>
+  <li><b>Run a practice test with blocking on</b> first. If a needed site is blocked during the real test, click <b>Allow &lt;site&gt;</b> on one of its flags: it opens for everyone within about 30 seconds.</li>
+  <li>Blocking works inside Chrome only. Other apps, other browsers and phones are still only flagged.</li>
+</ul></div>
 
 <h2>4. Creating the test in the dashboard</h2>
 <ol class="steps">
@@ -190,6 +198,7 @@ When you paste a form link, delete <code>/viewform</code> (and anything after it
   <tr><td><span class="pill high">high</span> Removed the extension</td><td>Rare by accident</td><td>Ask the student. Check for gaps around the same time</td></tr>
   <tr><td><span class="pill med">medium</span> No contact</td><td>Wi-Fi drop, laptop battery, Chrome crash</td><td>How long. A real network drop is usually downgraded to low automatically</td></tr>
   <tr><td><span class="pill med">medium</span> Different or shared browser</td><td>Reinstalled extension, changed laptop</td><td>Two students on one browser is worth a conversation</td></tr>
+  <tr><td><span class="pill med">medium</span> Blocked attempt</td><td>A link inside the quiz, a mis-click, a search typed out of habit</td><td>What they tried to open, and how often. Many students blocked on one site usually means it should be allowed</td></tr>
   <tr><td><span class="pill low">low</span> Tab open</td><td>A tab left open from before the test</td><td>Whether they ever switched to it (activity log)</td></tr>
 </table>
 <p class="small">Records are deleted 90 days after each test, unless a case is under review. Ask Nikhil to keep a test's records longer if a case is open.</p>
@@ -243,6 +252,7 @@ When you paste a form link, delete <code>/viewform</code> (and anything after it
   <tr><td>No contact from the extension</td><td><span class="pill med">medium</span> / <span class="pill low">low</span></td><td>Silent for 90 seconds; low when it was only a network drop</td></tr>
   <tr><td>Rejoined from a different browser</td><td><span class="pill med">medium</span></td><td>The same roll number joins from another browser or after a reinstall</td></tr>
   <tr><td>Same browser used for another roll number</td><td><span class="pill med">medium</span></td><td>Two roll numbers join from one browser</td></tr>
+  <tr><td>Tried to open a site that is not allowed (blocked)</td><td><span class="pill med">medium</span></td><td>Blocking is on and the extension stopped a page from opening</td></tr>
   <tr><td>Has a tab open on a site that is not allowed</td><td><span class="pill low">low</span></td><td>A background tab is on a site that is not on the list</td></tr>
 </table>
 

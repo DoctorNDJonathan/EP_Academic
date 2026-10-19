@@ -4,7 +4,7 @@ Developer Dashboard → your item. Copy each block into the matching field.
 
 ## Package
 
-Upload `dist/exam-proctor-3.0.0.zip` (built with `python3 build_extension.py --server https://exam-proctor-rhbo.onrender.com`).
+Upload `dist/exam-proctor-3.1.0.zip` (built with `python3 build_extension.py --server https://exam-proctor-rhbo.onrender.com`).
 
 ## Store listing tab
 
@@ -22,6 +22,8 @@ Upload `dist/exam-proctor-3.0.0.zip` (built with `python3 build_extension.py --s
 > 3. The popup lists the allowed sites. A green "ON" badge means monitoring is active.
 > 4. If you open a site that is not allowed, you get a warning straight away, so you can go back.
 > 5. Monitoring stops automatically when the exam ends.
+>
+> If your instructor turns on blocking for an exam, other websites will not open while it runs; you see a "blocked" page with links back to the allowed sites, and the attempt is reported.
 >
 > What is checked, only during the exam you joined: the address (host and path, never search terms) and title of your active tab, other open tabs on sites that are not allowed, and when you switch to another app or stop using the keyboard and mouse.
 >
@@ -41,7 +43,7 @@ Upload `dist/exam-proctor-3.0.0.zip` (built with `python3 build_extension.py --s
 ## Privacy practices tab
 
 **Single purpose:**
-> During an online exam the student has joined, check that the student stays on the websites the instructor allows, and report other sites and apps to the exam's invigilators.
+> During an online exam the student has joined, keep the student on the websites the instructor allows (optionally blocking other websites for the duration of the exam), and report other sites and apps to the exam's invigilators.
 
 **Permission justifications:**
 
@@ -52,6 +54,8 @@ Upload `dist/exam-proctor-3.0.0.zip` (built with `python3 build_extension.py --s
 | `alarms` | Runs a 30-second timer during the exam to send status updates, so invigilators can see that the extension is still active. |
 | `storage` | Keeps the exam session and any unsent activity on the device, so nothing is lost if the network drops or Chrome restarts the extension. |
 | `notifications` | Warns the student immediately when they open a website that the exam does not allow, so they can return to the exam. |
+| `declarativeNetRequest` | Only when the instructor turns blocking on for an exam, and only between its start and end time: stops pages other than the exam's allowed sites from opening in a tab. The rules are removed when the exam ends. No page content is read or changed. |
+| `webNavigation` | Detects when a page was blocked under the rule above, so the extension can show its own "site blocked" page with links back to the allowed sites and report the attempt to the invigilator. |
 | Host permission (`https://exam-proctor-rhbo.onrender.com/*`) | Sends exam activity only to the exam server. No other site is contacted. |
 
 **Are you using remote code?** No, I am not using remote code. (All JavaScript is in the package.)
